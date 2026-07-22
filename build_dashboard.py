@@ -287,7 +287,68 @@ basics = [
     ("Is the store fragile?", verdict(shares[0] < 20 and rets[-1] < 3, "No, well protected", "Somewhat"),
      f"The biggest product is only {shares[0]:g}% of sales, and just {rets[-1]:g} in 100 sales come back as returns.",
      "b5"),
+    ("Is each visit worth more?", verdict(rps_idx[-1] >= 110, "Yes, more than ever", "About the same"),
+     f"The money earned per visit is at {rps_idx[-1]} vs 100 at launch. The store squeezes more value out of every visitor it gets.",
+     "b6"),
 ]
+
+# ---- weekly momentum (optional raw/weekly.csv) ----
+import os
+WEEK_OK = os.path.exists("raw/weekly.csv")
+weekly_tab_btn, weekly_panel = "", ""
+if WEEK_OK:
+    from datetime import datetime, timedelta
+    w = pd.read_csv("raw/weekly.csv")
+    wk_start = [datetime.strptime(x, "%Y-%m-%d").date() for x in w["week"]]
+    w_partial = (TODAY - wk_start[-1]).days < 6
+    w_net = list(w["net_sales"].astype(float))
+    if w_partial:
+        elapsed = max((TODAY - wk_start[-1]).days, 1)
+        w_net[-1] = w_net[-1] / elapsed * 7
+    w_labels = [f"W{i+1}" + ("*" if (w_partial and i == len(w_net) - 1) else "") for i in range(len(w_net))]
+    w_idx = [round(v / w_net[0] * 100) for v in w_net]
+    full = w.iloc[:-1] if w_partial else w
+    last3, prev3 = full.iloc[-3:], full.iloc[-6:-3]
+    def pct(a, b): return round((a / b - 1) * 100, 1)
+    conv3 = lambda df: (df["sessions"] * df["conversion_rate"]).sum() / df["sessions"].sum() * 100
+    wk_deltas = [
+        ("Net sales", pct(last3["net_sales"].sum(), prev3["net_sales"].sum())),
+        ("Orders", pct(last3["orders"].sum(), prev3["orders"].sum())),
+        ("Sessions", pct(last3["sessions"].sum(), prev3["sessions"].sum())),
+        ("Conversion", pct(conv3(last3), conv3(prev3))),
+    ]
+    def dpill(name, v):
+        cls = "up" if v >= 0 else "down"
+        arrow = "&#9650;" if v >= 0 else "&#9660;"
+        return (f'<div class="pill kpi rv"><span class="v {cls}">{arrow} {abs(v):g}%</span>'
+                f'<span class="l">{name}, last 3 weeks vs prior 3</span></div>')
+    wk_pills = "".join(dpill(nm, v) for nm, v in wk_deltas)
+    sd_, cd_ = dict(wk_deltas)["Sessions"], dict(wk_deltas)["Conversion"]
+    nd_ = dict(wk_deltas)["Net sales"]
+    if nd_ >= 0:
+        wk_verdict = f"The last three full weeks outsold the three before them by {nd_:g}%."
+    elif cd_ > 0 and sd_ < 0:
+        wk_verdict = f"Sales dipped {abs(nd_):g}% over the last three weeks, but the cause is visible and specific: sessions fell {abs(sd_):g}% while conversion IMPROVED {cd_:g}%. The store is working better than ever; fewer people are arriving. That makes the fix a marketing task, not a site task."
+    else:
+        wk_verdict = f"Sales fell {abs(nd_):g}% in the last three weeks with conversion also soft; worth watching the next two weeks closely."
+    EX_WK = card(
+        "The short-term pulse: the same store measured week by week, plus a head-to-head of the last three full weeks against the three before them.",
+        "A fifth weekly ShopifyQL pull (net sales, orders, sessions, conversion). Weeks are indexed to the first week shown = 100; the current partial week is projected to 7-day pace and starred. The comparison pills exclude the partial week.",
+        "Weekly numbers are noisy by nature: judge the 3-vs-3 pills, not any single bar.",
+        wk_verdict + " Monthly charts answer strategy questions; this tab answers the operational one: is what I did in the last few weeks working?")
+    weekly_tab_btn = "WEEKLY"
+    weekly_panel = f"""
+  <div class="panel" id="panel-weekly">
+    <section>
+      <h2>The last 3 weeks vs the 3 before</h2>
+      <div class="kpis" style="margin: 20px 0 36px;">{wk_pills}</div>
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="w1" role="img" aria-label="Weekly net sales index"></canvas></div></div>
+        <div class="ex-col">{EX_WK}</div>
+      </div>
+    </section>
+  </div>"""
+
 basics_html = "".join(
     f'<div class="q-card rv"><div class="q-head"><h3>{q}</h3>{v}</div>'
     f'<p class="q-txt">{t}</p><div class="q-chart"><canvas id="{cid}"></canvas></div></div>'
@@ -310,7 +371,9 @@ EX_DEEP = {
     "Quarter-over-quarter direction is the number a bank, supplier, or partner would actually ask about.",
     f"Quarter-on-quarter the story is unambiguous: {' to '.join(str(v) for v in q_idx)}. Every quarter has been materially larger than the last, which is the cleanest possible proof that monthly dips are noise around a strong trend and not the trend itself. If this page had to be one chart for a skeptical outsider, it is this one."),
 }
-TABS = [("basics", "Start here"), ("overview", "Overview"), ("growth", "Growth"), ("customers", "Customers & funnel"),
+TABS = [("basics", "Start here"), ("overview", "Overview")]
+if WEEK_OK: TABS.append(("weekly", "This week"))
+TABS += [("growth", "Growth"), ("customers", "Customers & funnel"),
         ("economics", "Economics & products"), ("deep", "Deep dive"), ("method", "Method")]
 tab_nav = "".join(f'<button class="pill tab-btn{" active" if i == 0 else ""}" data-tab="{tid}">{name}</button>' for i, (tid, name) in enumerate(TABS))
 
@@ -335,7 +398,8 @@ D = {"L": labels, "PL": proj_labels, "IDX": idx_padded, "ROLL": roll_padded,
      "AOV": aov_idx, "DISC": disc, "RETS": rets, "SCAT": scatter,
      "SHARES": shares, "SLAB": share_labels, "HEALTH": health, "NFULL": n_full,
      "ORD": orders_idx, "SESS": sess_idx, "RPS": rps_idx, "SHIP": ship_pct,
-     "ABAN": cart_abandon, "CHKC": chk_complete, "QL": q_labels, "QIDX": q_idx}
+     "ABAN": cart_abandon, "CHKC": chk_complete, "QL": q_labels, "QIDX": q_idx,
+     "WL": w_labels if WEEK_OK else [], "WIDX": w_idx if WEEK_OK else []}
 
 tpl = """<!DOCTYPE html>
 <html lang="en">
@@ -355,7 +419,8 @@ tpl = """<!DOCTYPE html>
   .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; }
   h1 { font-size: clamp(28px, 4.5vw, 46px); font-weight: 600; letter-spacing: -0.02em; margin: 22px auto 10px; max-width: 640px; line-height: 1.15; }
   .note { font-size: 13px; color: var(--ink-3); max-width: 560px; margin: 0 auto; }
-  .tabs { position: sticky; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 30px 0 48px; }
+  .tabs { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 30px 0 48px; padding: 12px 8px; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 0 0 20px 20px; }
+  @media (max-width: 720px) { .tabs { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-left: -32px; margin-right: -32px; padding-left: 24px; padding-right: 24px; } .tabs::-webkit-scrollbar { display: none; } .tab-btn { flex: 0 0 auto; } }
   .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 9px 20px; cursor: pointer; transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease; }
   .tab-btn:hover { transform: translateY(-1px); }
   .tab-btn.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
@@ -427,12 +492,14 @@ tpl = """<!DOCTYPE html>
   .q-chart { position: relative; height: 120px; margin-top: 4px; }
   .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; flex: 1; }
   .chart.mini { min-height: 170px; padding: 14px; }
+  .kpi .v.up { color: #1d7d3f; } .kpi .v.down { color: #c25200; }
   .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .rv.in { opacity: 1; transform: none; }
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
   footer .pill { display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
   @media (max-width: 860px) { .duo { grid-template-columns: 1fr; } .duo.flip .chart-col { order: 1; } .duo.flip .ex-col { order: 2; } .vs-row { grid-template-columns: 1fr; } .arr { transform: rotate(90deg); } }
-  @media (max-width: 560px) { .chart-col .chart { min-height: 240px; } .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
+  @media (max-width: 720px) { .wrap { padding: 32px 20px 56px; } section { margin-bottom: 48px; } .kpis { margin-bottom: 40px; } .tabs { margin-left: -20px; margin-right: -20px; } }
+  @media (max-width: 560px) { .chart-col .chart { min-height: 240px; } .q-chart { height: 100px; } .kpi { padding: 10px 18px; } .kpi .v { font-size: 20px; } .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
   @media (prefers-reduced-motion: reduce) { .rv, .panel.active, .bar-fill, .meter-dot, .tab-btn, .kpi, .chart { transition: none; animation: none; } .rv { opacity: 1; transform: none; } }
 </style>
 </head>
@@ -478,6 +545,8 @@ tpl = """<!DOCTYPE html>
       </div>
     </section>
   </div>
+
+%WEEKLY_PANEL%
 
   <div class="panel" id="panel-growth">
     <section>
@@ -739,6 +808,12 @@ spark('b2', D.CONV, '#0071e3');
 spark('b3', D.REP, '#ff9500');
 spark('b4', D.DISC, '#ff9500', 'bar');
 spark('b5', D.SHARES.slice(0, 5), '#0071e3', 'bar');
+spark('b6', D.RPS, '#0071e3');
+if (D.WIDX.length) new Chart(document.getElementById('w1'), { type: 'bar',
+  data: { labels: D.WL, datasets: [{ data: D.WIDX, backgroundColor: D.WL.map(l => l.includes('*') ? '#aeaeb2' : '#0071e3'), borderRadius: 999, maxBarThickness: 30 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => 'index ' + c.parsed.y + (D.WL[c.dataIndex].includes('*') ? ' (partial week, 7-day pace)' : '') } } },
+    scales: { x: X, y: { grid: GRID, border: NOB } } } });
 function dial(id, data, color, label, pct) {
   new Chart(document.getElementById(id), { type: 'line',
     data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: color + '14', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.35 }] },
@@ -768,7 +843,7 @@ new Chart(document.getElementById('d6'), { type: 'bar',
 </html>"""
 
 out = (tpl.replace("%SHOP%", SHOP_NAME).replace("%MULT%", str(growth_mult))
-    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav).replace("%WHY%", WHY).replace("%BASICS%", basics_html)
+    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav).replace("%WHY%", WHY).replace("%BASICS%", basics_html).replace("%WEEKLY_PANEL%", weekly_panel)
     .replace("%EX_MINI%", EX_DEEP["mini"]).replace("%EX_CHK%", EX_DEEP["chk"]).replace("%EX_Q%", EX_DEEP["q"])
     .replace("%KPIS%", kpi_html).replace("%SCORES%", score_html)
     .replace("%FUNNEL%", funnel_html).replace("%HEATHEAD%", heat_head)

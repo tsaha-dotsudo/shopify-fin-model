@@ -29,6 +29,15 @@ FROM sales SHOW customers, returning_customers, returning_customer_rate, average
 FROM sessions SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout, conversion_rate TIMESERIES month SINCE <start-date> UNTIL today
 ```
 
+Optional fifth report for the weekly momentum tab (merge the two on week into `raw/weekly.csv`):
+
+```
+FROM sales SHOW orders, net_sales, total_sales TIMESERIES week SINCE -8w UNTIL today
+FROM sessions SHOW sessions, conversion_rate TIMESERIES week SINCE -8w UNTIL today
+```
+
+If `raw/weekly.csv` is absent the dashboard simply builds without the weekly tab.
+
 ## Setup
 
 ```
