@@ -1,31 +1,112 @@
 # Shopify Financial Model Pipeline
 
-Pulls 4 reports from Shopify, stores them as CSV, and builds an Excel financial model with a live formula layer and cost assumptions.
+A self-contained financial reporting system for a Shopify store. It pulls the four reports that actually drive decisions, stores them as plain CSVs, builds an Excel financial model with live formulas and cost assumptions, and generates a public, anonymized analytics dashboard. Everything is rebuilt from the raw data on each run; no number is typed by hand.
 
-## Reports used
-1. Monthly P&L: orders, gross, discounts, returns, net, shipping, taxes, total
-2. Product-level sales (top 30 by net sales)
-3. Customers: total, returning, returning rate, AOV
-4. Funnel: sessions, cart adds, checkout reached/completed, conversion
-
-## ShopifyQL queries
 ```
-FROM sales SHOW orders, gross_sales, discounts, returns, net_sales, shipping_charges, taxes, total_sales TIMESERIES month SINCE 2025-10-01 UNTIL today
-FROM sales SHOW orders, gross_sales, discounts, returns, net_sales GROUP BY product_title SINCE 2025-10-01 UNTIL today ORDER BY net_sales DESC LIMIT 30
-FROM sales SHOW customers, returning_customers, returning_customer_rate, average_order_value TIMESERIES month SINCE 2025-10-01 UNTIL today
-FROM sessions SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout, conversion_rate TIMESERIES month SINCE 2025-10-01 UNTIL today
+Shopify (ShopifyQL)  ->  raw/*.csv  ->  build_model.py      ->  <SHOP>_Financial_Model.xlsx   (private)
+                                    ->  build_dashboard.py  ->  dashboard.html                (public)
 ```
 
-## Usage
-1. Export the 4 queries from Shopify as CSV into `raw/` (headers must match the filenames in `raw/README.md`)
-2. Set `SHOP_NAME` at the top of `build_model.py`
-3. `pip install openpyxl pandas`
-4. `python build_model.py`
+## Why only four reports
 
-Output: `<SHOP_NAME>_Financial_Model.xlsx` with data sheets, an Assumptions sheet (fill the yellow cells with real COGS, courier, packaging, gateway costs), a formula-driven monthly model, a Charts sheet (net sales, orders, sessions, conversion trends), and an auto-generated Insights sheet. Insights are computed from the CSVs on every run: growth vs run-rate for partial months, traffic vs conversion attribution, shipping recovery, repeat rate, product concentration, discount/return rates, and AOV.
+Most Shopify analytics are noise for a small D2C store. These four cover every decision that matters:
 
-Real store CSVs and generated xlsx files are gitignored.
+| Report | Answers |
+|---|---|
+| Monthly P&L | Is the store growing, and is growth being bought with discounts? |
+| Product-level sales | Where does the money actually come from, and how concentrated is it? |
+| Customers | Are buyers coming back, and are orders getting bigger? |
+| Session funnel | Is a revenue change a traffic problem or a conversion problem? |
 
-## Public dashboard
+## The ShopifyQL queries
 
-`python build_dashboard.py` generates `dashboard.html` from the CSVs in `raw/`: an anonymized, publish-safe performance page. Months are masked (M1..Mn), net sales are indexed to the first full month = 100, products are renamed A-E, and only rates and ratios appear. Safe to commit and serve via GitHub Pages (Settings -> Pages -> deploy from main branch, then visit /dashboard.html).
+Run these in Shopify (Analytics -> ShopifyQL, or via API) and export each as CSV into `raw/` using the filenames in `raw/README.md`. Adjust the start date to your store's history.
+
+```
+FROM sales SHOW orders, gross_sales, discounts, returns, net_sales, shipping_charges, taxes, total_sales TIMESERIES month SINCE <start-date> UNTIL today
+FROM sales SHOW orders, gross_sales, discounts, returns, net_sales GROUP BY product_title SINCE <start-date> UNTIL today ORDER BY net_sales DESC LIMIT 30
+FROM sales SHOW customers, returning_customers, returning_customer_rate, average_order_value TIMESERIES month SINCE <start-date> UNTIL today
+FROM sessions SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout, conversion_rate TIMESERIES month SINCE <start-date> UNTIL today
+```
+
+## Setup
+
+```
+pip install openpyxl pandas
+```
+
+Set `SHOP_NAME` at the top of both scripts. Drop the four CSVs into `raw/`. Then:
+
+```
+python build_model.py       # -> <SHOP_NAME>_Financial_Model.xlsx
+python build_dashboard.py   # -> dashboard.html
+```
+
+## The Excel model (private)
+
+`build_model.py` produces a workbook with:
+
+- **Data sheets** - the four reports, untouched, one sheet each
+- **Assumptions** - yellow input cells for your real costs: COGS %, courier cost per order, packaging, payment gateway %, monthly fixed costs. The shipped values are placeholders to show format
+- **Model** - a monthly view built entirely from formulas: net sales, MoM growth, discount and return rates, AOV, revenue per session, repeat rate, and an estimated contribution margin driven by the Assumptions sheet. Change an assumption and everything recalculates
+- **Charts** - trend charts for net sales, orders, sessions, conversion
+- **Insights** - commentary generated by code from the data on each run: growth vs run-rate for partial months, traffic vs conversion attribution, shipping cost recovery, repeat rate, product concentration, discount and return discipline, AOV
+
+The workbook contains real revenue and product data. It is gitignored and should never be committed to a public repo.
+
+## The dashboard (public)
+
+`build_dashboard.py` produces `dashboard.html`, a single-file page with no build step and no backend, organized into five tabs:
+
+- **Overview** - KPI pills, a 0-100 health scorecard, and the net sales index with rolling trend and a 3-month projection cone
+- **Growth** - a stacked decomposition of what drove each month (visitors vs conversion vs order size), a momentum heatmap across five metrics, and auto-detected anomalies
+- **Customers & funnel** - conversion and repeat rate with a fitted trend projected to month 12, plus the session funnel now and across all months
+- **Economics & products** - AOV index, a discount-vs-growth scatter, product concentration with a Herfindahl-style meter
+- **Method** - how the pipeline works, the anonymization scheme, the math, and a glossary
+
+Every chart carries a three-part explainer card: what this shows, how we built it, what to look for. The wording is generated from the data, so it stays accurate after every refresh.
+
+### Anonymization scheme
+
+The dashboard is safe to publish because nothing absolute survives to the HTML:
+
+- Months are masked to M1..Mn
+- Net sales and AOV are indexed to the first full month = 100
+- Products are relabeled A through E
+- Only rates, ratios, shares, and indexes appear; no rupee amounts, order counts, or visitor counts
+- The current partial month is projected to full-month pace and marked with *
+
+### The math
+
+- **Projection cone**: compounds the historical average log-growth of full months, +/- one standard deviation
+- **Growth decomposition**: net sales = sessions x conversion x AOV, so log-differences split each month's change into three additive parts
+- **Repeat trend**: least-squares fit through monthly repeat rate, extended to M12
+- **Anomalies**: months beyond 1.5 standard deviations from average MoM growth
+- **Concentration meter**: Herfindahl index of product shares scored against the 0.25 high-concentration threshold
+- **Health score**: five metrics scored 0-100 against benchmarks (conversion vs 3%, repeat vs 30%, returns vs 5% ceiling, discounts vs 8% ceiling, 3-month growth vs 15%), averaged
+
+## Security
+
+- Chart.js is loaded with a sha384 integrity hash; a tampered CDN copy will refuse to run
+- Embedded JSON escapes closing tags to prevent script breakout
+- `.gitignore` blocks `raw/*.csv` and generated `*_Financial_Model.xlsx` from commits
+- Manual uploaders beware: the gitignore only protects git commands, not the GitHub web upload page. Never drag real CSVs or the xlsx into a public repo, and remember deleted files remain in git history
+
+## Refresh workflow
+
+1. Re-run the four queries, export fresh CSVs into `raw/`
+2. `python build_model.py` and `python build_dashboard.py`
+3. Commit the new `dashboard.html` only
+
+## Serving the dashboard
+
+GitHub Pages: Settings -> Pages -> Deploy from a branch -> main. The page then lives at `https://<user>.github.io/<repo>/dashboard.html`.
+
+## Structure
+
+```
+build_model.py       Excel financial model builder (private output)
+build_dashboard.py   anonymized dashboard builder (public output)
+dashboard.html       generated dashboard, safe to publish
+raw/                 your four CSV exports (gitignored)
+```

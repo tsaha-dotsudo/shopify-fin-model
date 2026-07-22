@@ -157,17 +157,59 @@ if not anoms:
 anom_html = "".join(f'<div class="pill kpi"><span class="l">{a}</span></div>' for a in anoms)
 
 per100_cart, per100_buy = funnel[1][1], funnel[3][1]
-say = {
-    "c1": f"If the first full month's sales were 100 rupees, the latest full month brought in {idx[last_full_idx]} rupees. The gray dashed line is the 3-month average: the trend with monthly noise smoothed out. The faint cone after {labels[-1]} is where the next 3 months land if history repeats, wider = less certain.",
-    "c2": f"Each bar is the month's growth vs the one before. Stacked colors show WHY: more visitors (blue), better conversion (orange), bigger orders (gray). Most of this store's growth is the blue kind.",
-    "c3": f"Conversion: out of every 100 visitors, {conv[-1]:g} buy (typical stores: 1.5 to 2.5). Repeat rate: {repeat[-1]:g} of every 100 buyers have bought before. The dotted line projects repeat rate reaching ~{proj_m12:g}% by month 12 if the trend holds.",
-    "funnel": f"Out of every 100 visitors last month, about {per100_cart:g} added to cart and {per100_buy:g} bought. The lines show each stage across all months: rising lines mean the funnel is getting tighter, losing fewer people per step.",
-    "c4": f"AOV index {aov_idx[-1]} means today's average order is about the size of month one's. Growth has come from more orders, not bigger ones.",
-    "c5": f"Discounts give away {disc[-1]:g} of every 100 sold; returns take back {rets[-1]:g}. The scatter tests whether discounting bought growth: no clear pattern means it didn't, growth came from elsewhere.",
-    "c6": f"Top product: {shares[0]:g}% of sales. Top five: {sum(shares[:5]):g}%. The meter below scores concentration risk; further right = more dependent on few products.",
-    "health": f"Five metrics scored against healthy-store benchmarks and averaged. {health}/100 overall.",
-    "heat": "Each cell is that metric's change vs the prior month. Blue = improved, orange = declined, deeper = bigger move. A healthy store is mostly blue.",
+
+def card(what, how, watch):
+    return (f'<div class="explain">'
+            f'<div class="ex-row"><span class="pill ex-tag">what this shows</span><p>{what}</p></div>'
+            f'<div class="ex-row"><span class="pill ex-tag">how we built it</span><p>{how}</p></div>'
+            f'<div class="ex-row"><span class="pill ex-tag">what to look for</span><p>{watch}</p></div></div>')
+
+EX = {
+"health": card(
+    f"One number for the store's overall condition: {health}/100, averaged from five component scores shown as bars.",
+    "Each metric is scored 0-100 against a healthy-store benchmark: conversion vs 3%, repeat rate vs 30%, returns vs a 5% ceiling, discounts vs an 8% ceiling, and growth vs 15% average monthly. The five scores are averaged with equal weight.",
+    "Any bar sitting under 50 is the weakest link and the first thing to work on."),
+"c1": card(
+    f"Monthly net sales as an index: first full month = 100, latest full month = {idx[last_full_idx]}. That is {growth_mult}x growth with no real amounts revealed.",
+    f"Monthly P&L pulled via ShopifyQL, indexed to hide currency. The current month is scaled to full-month pace from days elapsed. The gray dashed line is a 3-month rolling average. The cone projects 3 months forward by compounding the historical average log-growth, widened by one standard deviation each way.",
+    "Whether the solid line stays above the dashed trend, and how wide the cone is: a narrow cone means growth has been consistent enough to predict."),
+"c2": card(
+    "Each month's growth split into its three possible causes: more visitors, better conversion, or bigger orders.",
+    "Net sales is the product of sessions, conversion rate, and average order value, so log-differences of each factor split every month's change into three additive parts, shown stacked.",
+    "Which color dominates. This store's bars are mostly blue: growth is traffic-led, so marketing reach matters more than site tweaks right now."),
+"heat": card(
+    "Five metrics tracked month by month in one grid: a compressed view of momentum across the whole business.",
+    "Each cell is that metric's percent change vs the prior month. Blue means it improved, orange declined, and deeper color means a bigger move (capped at 30% for readability).",
+    "Columns that go orange across several rows at once: that is a genuinely bad month, not one noisy metric."),
+"c3": card(
+    f"How well visits become buyers ({conv[-1]:g} per 100 visitors) and how many buyers come back ({repeat[-1]:g} per 100 buyers).",
+    f"Conversion comes from the sessions report, repeat rate from the customers report. The dotted line is a least-squares fit through repeat rate, extended to month 12, currently landing near {proj_m12:g}%.",
+    "Typical online stores convert 1.5 to 2.5 per 100. Repeat rate climbing while sales grow means new customers are being kept, not just acquired."),
+"funnel": card(
+    f"Where visitors drop off: out of 100 sessions last month, {per100_cart:g} added to cart, {per100_buy:g} purchased. The lines below track each stage across all months.",
+    "Each stage's sessions divided by total sessions for that month, so every figure reads as per-100-visitors.",
+    "Rising lines mean the funnel is tightening. The biggest loss is always visit-to-cart; small gains there outweigh anything later in the funnel."),
+"c4": card(
+    f"The size of a typical order, indexed. Currently {aov_idx[-1]} vs 100 in month one: essentially flat.",
+    "Average order value from the customers report, indexed the same way as sales to hide currency.",
+    "Flat AOV while sales multiply means all growth came from order count. AOV is the untouched lever: bundles and free-shipping thresholds move it."),
+"c5": card(
+    "Whether discounting bought growth. Each dot is one month: discounts given vs growth achieved.",
+    "Monthly discount rate (discounts as % of gross) plotted against that month's sales growth.",
+    "A rising pattern would mean growth was purchased with margin. This scatter shows no such pattern: the best growth months were not the heaviest discount months."),
+"c6": card(
+    f"How dependent the store is on its best sellers: the top product holds {shares[0]:g}% of sales, the top five together {sum(shares[:5]):g}%.",
+    "Each product's share of total net sales, with names anonymized to letters. The meter is a Herfindahl-style concentration index scored against the 0.25 threshold economists use for high concentration.",
+    "A dot far right means one product's slowdown hurts everything. This store sits left: diversified across many products."),
+"anoms": card(
+    "Months where growth broke sharply from the store's own pattern, flagged automatically.",
+    f"Each month's growth is compared to the store's average ({mm:.0f}%) in standard deviations; anything beyond 1.5 sd is flagged.",
+    "Flags deserve an explanation you can name: a launch, a campaign, a stockout. An unexplained flag is the one worth investigating."),
 }
+
+TABS = [("overview", "Overview"), ("growth", "Growth"), ("customers", "Customers & funnel"),
+        ("economics", "Economics & products"), ("method", "Method")]
+tab_nav = "".join(f'<button class="pill tab-btn{" active" if i == 0 else ""}" data-tab="{tid}">{name}</button>' for i, (tid, name) in enumerate(TABS))
 
 kpis = [(f"{growth_mult}x", "net sales growth"), (f"{conv[-1]}%", "conversion"),
         (f"{repeat[-1]}%", "repeat rate"), (f"{rets[-1]}%", "returns"),
@@ -202,13 +244,19 @@ tpl = """<!DOCTYPE html>
   :root { --ink: #111114; --ink-2: #6f7076; --ink-3: #a4a5ab; --bg: #fbfbfa; --card: #ffffff; --line: #ececea; --accent: #2a78d6; --warm: #eb6834; }
   * { box-sizing: border-box; margin: 0; }
   body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px 72px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 24px 72px; }
   .pill { border-radius: 999px; }
-  header { text-align: center; margin-bottom: 40px; }
+  header { text-align: center; margin-bottom: 32px; }
   .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; }
   h1 { font-size: clamp(26px, 4.5vw, 38px); font-weight: 600; letter-spacing: -0.02em; margin: 20px auto 8px; max-width: 560px; line-height: 1.2; }
   .note { font-size: 13px; color: var(--ink-3); max-width: 520px; margin: 0 auto; }
-  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 36px 0 56px; }
+  .tabs { position: sticky; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 28px 0 40px; }
+  .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 8px 18px; cursor: pointer; }
+  .tab-btn.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 0 48px; }
   .kpi { background: var(--card); border: 1px solid var(--line); padding: 10px 22px; display: flex; align-items: baseline; gap: 8px; }
   .kpi .v { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
   .kpi .l { font-size: 12px; color: var(--ink-2); }
@@ -227,18 +275,26 @@ tpl = """<!DOCTYPE html>
   .bar-track { height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }
   .bar-fill { height: 100%; background: var(--accent); border-radius: 999px; }
   .pct { font-size: 13px; font-weight: 500; text-align: right; }
-  .say { max-width: 620px; margin: 14px auto 0; font-size: 13px; color: var(--ink-2); text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 10px 22px; }
+  .explain { max-width: 680px; margin: 18px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
+  .ex-row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: start; }
+  .ex-tag { font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 3px 10px; text-align: center; white-space: nowrap; margin-top: 2px; }
+  .ex-row p { font-size: 13px; color: var(--ink-2); }
   .hm { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
   .hm-row { display: grid; grid-template-columns: 110px repeat(%N%, 1fr); gap: 6px; align-items: center; min-width: 560px; }
   .hm-cell { border-radius: 999px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
   .hm-h { background: transparent; color: var(--ink-3); font-weight: 500; }
-  .meter { max-width: 520px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
+  .meter { max-width: 520px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
   .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dce9f8, #f8ddd2); }
   .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); }
   .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 8px; }
-  footer { text-align: center; font-size: 12px; color: var(--ink-3); }
+  .method { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .method .explain { margin: 0; max-width: none; }
+  .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 0 0 28px; }
+  .flow .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
+  .flow .arr { color: var(--ink-3); font-size: 13px; }
+  footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
   footer .pill { display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
-  @media (max-width: 560px) { .step { grid-template-columns: 110px 1fr 46px; } }
+  @media (max-width: 560px) { .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
 </style>
 </head>
 <body>
@@ -246,112 +302,133 @@ tpl = """<!DOCTYPE html>
   <header>
     <span class="eyebrow">store analytics / anonymized</span>
     <h1>%MULT%x net sales in %NF% months</h1>
-    <p class="note">Generated %DATE%. Indexes and rates only; revenue, volumes, and product names withheld. * marks the current partial month at run-rate, p marks projections.</p>
+    <p class="note">Every figure below is an index or a rate. Revenue, volumes, and product names are withheld by design. * marks the current partial month at run-rate, p marks projections.</p>
   </header>
 
-  <div class="kpis">%KPIS%</div>
+  <nav class="tabs" role="tablist">%TABNAV%</nav>
 
-  <section>
-    <h2>Health scorecard</h2>
-    <p class="sub">%SAY_HEALTH%</p>
-    <div class="grid2">
-      <div class="chart"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
-      <div class="funnel">%SCORES%</div>
-    </div>
-  </section>
+  <div class="panel active" id="panel-overview">
+    <div class="kpis">%KPIS%</div>
+    <section>
+      <h2>Health scorecard</h2>
+      <p class="sub">Five metrics scored against benchmarks, averaged into one number</p>
+      <div class="grid2">
+        <div class="chart"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
+        <div class="funnel">%SCORES%</div>
+      </div>
+      %EX_HEALTH%
+    </section>
+    <section>
+      <h2>Net sales index, trend and projection</h2>
+      <div class="chart"><canvas id="c1" role="img" aria-label="Net sales index with rolling average and projection band"></canvas></div>
+      %EX_C1%
+    </section>
+  </div>
 
-  <section>
-    <h2>Net sales index, trend and projection</h2>
-    <p class="sub">First full month = 100, cone = next 3 months if history repeats</p>
-    <div class="chart"><canvas id="c1" role="img" aria-label="Net sales index with rolling average and projection band"></canvas></div>
-    <p class="say">%SAY_C1%</p>
-  </section>
+  <div class="panel" id="panel-growth">
+    <section>
+      <h2>What drove each month's growth</h2>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--accent)"></span>more visitors</span>
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>better conversion</span>
+        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>bigger orders</span>
+      </div>
+      <div class="chart"><canvas id="c2" role="img" aria-label="Growth decomposition stacked bars"></canvas></div>
+      %EX_C2%
+    </section>
+    <section>
+      <h2>Momentum heatmap</h2>
+      <div class="hm">%HEATHEAD%%HEATROWS%</div>
+      %EX_HEAT%
+    </section>
+    <section>
+      <h2>Anomalies detected</h2>
+      <div class="kpis" style="margin: 16px 0 0;">%ANOMS%</div>
+      %EX_ANOMS%
+    </section>
+  </div>
 
-  <section>
-    <h2>What drove each month's growth</h2>
-    <div class="legend">
-      <span class="pill"><span class="dot" style="background: var(--accent)"></span>more visitors</span>
-      <span class="pill"><span class="dot" style="background: var(--warm)"></span>better conversion</span>
-      <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>bigger orders</span>
-    </div>
-    <div class="chart"><canvas id="c2" role="img" aria-label="Growth decomposition stacked bars"></canvas></div>
-    <p class="say">%SAY_C2%</p>
-  </section>
+  <div class="panel" id="panel-customers">
+    <section>
+      <h2>Conversion and repeat rate</h2>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--accent)"></span>conversion</span>
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>repeat rate</span>
+        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>repeat trend to M12 (dotted)</span>
+      </div>
+      <div class="chart"><canvas id="c3" role="img" aria-label="Conversion and repeat rate with fitted projection"></canvas></div>
+      %EX_C3%
+    </section>
+    <section>
+      <h2>The funnel, now and over time</h2>
+      <div class="funnel" style="margin-bottom: 20px;">%FUNNEL%</div>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--accent)"></span>added to cart %</span>
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>reached checkout %</span>
+        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>purchased %</span>
+      </div>
+      <div class="chart"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
+      %EX_FUNNEL%
+    </section>
+  </div>
 
-  <section>
-    <h2>Momentum heatmap</h2>
-    <p class="sub">%SAY_HEAT%</p>
-    <div class="hm">%HEATHEAD%%HEATROWS%</div>
-  </section>
-
-  <section>
-    <h2>Conversion and repeat rate</h2>
-    <div class="legend">
-      <span class="pill"><span class="dot" style="background: var(--accent)"></span>conversion</span>
-      <span class="pill"><span class="dot" style="background: var(--warm)"></span>repeat rate</span>
-      <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>repeat trend to M12 (dotted)</span>
-    </div>
-    <div class="chart"><canvas id="c3" role="img" aria-label="Conversion and repeat rate with fitted projection"></canvas></div>
-    <p class="say">%SAY_C3%</p>
-  </section>
-
-  <section>
-    <h2>The funnel, now and over time</h2>
-    <div class="funnel" style="margin-bottom: 20px;">%FUNNEL%</div>
-    <div class="legend">
-      <span class="pill"><span class="dot" style="background: var(--accent)"></span>added to cart %</span>
-      <span class="pill"><span class="dot" style="background: var(--warm)"></span>reached checkout %</span>
-      <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>purchased %</span>
-    </div>
-    <div class="chart"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
-    <p class="say">%SAY_FUNNEL%</p>
-  </section>
-
-  <section>
-    <h2>Order economics</h2>
-    <div class="legend">
-      <span class="pill"><span class="dot" style="background: var(--accent)"></span>AOV index</span>
-      <span class="pill"><span class="dot" style="background: var(--warm)"></span>discount vs growth scatter</span>
-    </div>
-    <div class="grid2">
+  <div class="panel" id="panel-economics">
+    <section>
+      <h2>Average order value</h2>
       <div class="chart"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div>
+      %EX_C4%
+    </section>
+    <section>
+      <h2>Did discounts buy growth?</h2>
       <div class="chart"><canvas id="c5" role="img" aria-label="Discount rate versus growth scatter"></canvas></div>
-    </div>
-    <p class="say">%SAY_C4% %SAY_C5%</p>
-  </section>
+      %EX_C5%
+    </section>
+    <section>
+      <h2>Product concentration</h2>
+      <div class="chart tall"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
+      <div class="meter">
+        <div class="meter-track"><div class="meter-dot" style="left: %HHIPOS%%"></div></div>
+        <div class="meter-labels"><span>diversified</span><span>concentrated</span></div>
+      </div>
+      %EX_C6%
+    </section>
+  </div>
 
-  <section>
-    <h2>Anomalies detected</h2>
-    <div class="kpis" style="margin: 16px 0 0;">%ANOMS%</div>
-  </section>
-
-  <section>
-    <h2>Product concentration</h2>
-    <p class="sub">Share of net sales, top five products anonymized</p>
-    <div class="chart tall" style="margin-bottom: 20px;"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
-    <div class="meter">
-      <div class="meter-track"><div class="meter-dot" style="left: %HHIPOS%%"></div></div>
-      <div class="meter-labels"><span>diversified</span><span>concentrated</span></div>
-    </div>
-    <p class="say">%SAY_C6%</p>
-  </section>
-
-  <section>
-    <h2>How to read this page</h2>
-    <div class="kpis" style="margin: 20px 0 0;">
-      <div class="pill kpi"><span class="l"><b>Index</b> hides real amounts: month one = 100, the rest is relative</span></div>
-      <div class="pill kpi"><span class="l"><b>Conversion</b> = buyers per 100 visitors</span></div>
-      <div class="pill kpi"><span class="l"><b>Repeat rate</b> = returning buyers per 100 buyers</span></div>
-      <div class="pill kpi"><span class="l"><b>AOV</b> = size of a typical order</span></div>
-      <div class="pill kpi"><span class="l"><b>*</b> = partial month at run-rate, <b>p</b> = projection</span></div>
-    </div>
-  </section>
+  <div class="panel" id="panel-method">
+    <section>
+      <h2>How this page is made</h2>
+      <p class="sub">A four-step pipeline, rebuilt on every refresh</p>
+      <div class="flow">
+        <span class="pill">Shopify (ShopifyQL)</span><span class="arr">-></span>
+        <span class="pill">4 CSV reports</span><span class="arr">-></span>
+        <span class="pill">build_dashboard.py</span><span class="arr">-></span>
+        <span class="pill">this page</span>
+      </div>
+      <div class="method">
+        <div class="explain"><div class="ex-row"><span class="pill ex-tag">the reports</span><p>Four ShopifyQL queries feed everything: monthly P&L (orders, gross, discounts, returns, net, shipping), product-level sales, customer counts with repeat rate and AOV, and the session funnel. Nothing else is collected.</p></div></div>
+        <div class="explain"><div class="ex-row"><span class="pill ex-tag">anonymization</span><p>Months are renamed M1..Mn. Sales and AOV are divided by their first-full-month value and shown as an index where 100 = month one. Products are relabeled A through E. Only rates, ratios, shares, and indexes survive to this page; no absolute rupee amount, order count, or visitor count appears anywhere in the HTML source.</p></div></div>
+        <div class="explain"><div class="ex-row"><span class="pill ex-tag">the math</span><p>Partial months are projected to full-month pace from days elapsed. The projection cone compounds average historical log-growth plus and minus one standard deviation. Growth decomposition uses log-differences of sessions x conversion x AOV. The repeat-rate trend is a least-squares fit. Anomalies are months beyond 1.5 standard deviations from average growth. The concentration meter is a Herfindahl index scored against the 0.25 high-concentration threshold.</p></div></div>
+        <div class="explain"><div class="ex-row"><span class="pill ex-tag">glossary</span><p>Index: month one = 100, everything relative to it. Conversion: buyers per 100 visitors. Repeat rate: returning buyers per 100 buyers. AOV: the size of a typical order. Net sales: gross minus discounts and returns. * : partial month at run-rate. p : projected month.</p></div></div>
+        <div class="explain"><div class="ex-row"><span class="pill ex-tag">integrity</span><p>The chart library is loaded with a cryptographic integrity hash, so a tampered copy will refuse to run. All numbers on this page are generated by code from the source reports; none are typed by hand.</p></div></div>
+      </div>
+    </section>
+  </div>
 
   <footer><span class="pill">%SHOP% / shopify-fin-model / ShopifyQL</span></footer>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <script>
 const D = %DATA%;
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    Object.values(Chart.instances).forEach(c => c.resize());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#a4a5ab';
@@ -417,15 +494,16 @@ new Chart(document.getElementById('c6'), { type: 'bar',
 </html>"""
 
 out = (tpl.replace("%SHOP%", SHOP_NAME).replace("%MULT%", str(growth_mult))
-    .replace("%NF%", str(n_full)).replace("%DATE%", TODAY.isoformat())
+    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav)
     .replace("%KPIS%", kpi_html).replace("%SCORES%", score_html)
     .replace("%FUNNEL%", funnel_html).replace("%HEATHEAD%", heat_head)
     .replace("%HEATROWS%", heat_rows).replace("%ANOMS%", anom_html)
     .replace("%HHIPOS%", f"{hhi_pos:.0f}").replace("%N%", str(n))
-    .replace("%SAY_C1%", say["c1"]).replace("%SAY_C2%", say["c2"])
-    .replace("%SAY_C3%", say["c3"]).replace("%SAY_FUNNEL%", say["funnel"])
-    .replace("%SAY_C4%", say["c4"]).replace("%SAY_C5%", say["c5"])
-    .replace("%SAY_C6%", say["c6"]).replace("%SAY_HEALTH%", say["health"])
-    .replace("%SAY_HEAT%", say["heat"]).replace("%DATA%", json.dumps(D).replace("</", "<\\/")))
+    .replace("%EX_HEALTH%", EX["health"]).replace("%EX_C1%", EX["c1"])
+    .replace("%EX_C2%", EX["c2"]).replace("%EX_HEAT%", EX["heat"])
+    .replace("%EX_C3%", EX["c3"]).replace("%EX_FUNNEL%", EX["funnel"])
+    .replace("%EX_C4%", EX["c4"]).replace("%EX_C5%", EX["c5"])
+    .replace("%EX_C6%", EX["c6"]).replace("%EX_ANOMS%", EX["anoms"])
+    .replace("%DATA%", json.dumps(D).replace("</", "<\\/")))
 open("dashboard.html", "w").write(out)
-print("wrote dashboard.html", len(out), "bytes, health", health, "hhi_pos", round(hhi_pos), "anomalies", len(anoms))
+print("wrote dashboard.html", len(out), "bytes")
