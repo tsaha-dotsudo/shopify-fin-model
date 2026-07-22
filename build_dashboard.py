@@ -86,9 +86,9 @@ def cell(seq, i):
     ch = (seq[i] / seq[i-1] - 1) * 100 if seq[i-1] else 0
     mag = min(abs(ch) / 30, 1)
     if ch >= 0:
-        col = f"rgba(42,120,214,{0.12 + 0.55 * mag:.2f})"
+        col = f"rgba(224,164,88,{0.15 + 0.55 * mag:.2f})"
     else:
-        col = f"rgba(235,104,52,{0.12 + 0.55 * mag:.2f})"
+        col = f"rgba(154,168,143,{0.15 + 0.55 * mag:.2f})"
     return (f"{'+' if ch >= 0 else ''}{ch:.0f}%", col)
 heat_rows = ""
 for name, seq in hm_metrics:
@@ -341,7 +341,7 @@ if WEEK_OK:
   <div class="panel" id="panel-weekly">
     <section>
       <h2>The last 3 weeks vs the 3 before</h2>
-      <div class="kpis" style="margin: 20px 0 36px;">{wk_pills}</div>
+      <div class="kpis quad" style="margin: 20px 0 36px;">{wk_pills}</div>
       <div class="duo">
         <div class="chart-col"><div class="chart rv"><canvas id="w1" role="img" aria-label="Weekly net sales index"></canvas></div></div>
         <div class="ex-col">{EX_WK}</div>
@@ -410,27 +410,28 @@ tpl = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #1d1d1f; --ink-2: #6e6e73; --ink-3: #aeaeb2; --bg: #f5f5f7; --card: #ffffff; --line: #e8e8ed; --accent: #0071e3; --warm: #ff9500; --good: #34c759; }
+  :root { --ink: #EDEDED; --ink-2: #A3A3A3; --ink-3: #6F6F6F; --bg: #131313; --card: #1A1A1A; --card-2: #202020; --line: #2C2C2C; --accent: #E0A458; --warm: #9AA88F; --good: #7FA87F; --error: #C97A6D; }
+  html { color-scheme: dark; }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
   .wrap { max-width: 1160px; margin: 0 auto; padding: 56px 32px 80px; }
-  .pill { border-radius: 999px; }
+  .pill { border-radius: 12px; }
   header { text-align: center; margin-bottom: 32px; }
-  .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 12px; }
   h1 { font-size: clamp(28px, 4.5vw, 46px); font-weight: 600; letter-spacing: -0.02em; margin: 22px auto 10px; max-width: 640px; line-height: 1.15; }
   .note { font-size: 13px; color: var(--ink-3); max-width: 560px; margin: 0 auto; }
-  .tabs { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 30px 0 48px; padding: 12px 8px; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 0 0 20px 20px; }
+  .tabs { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 30px 0 48px; padding: 12px 8px; background: color-mix(in srgb, var(--bg) 78%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-radius: 0 0 20px 20px; }
   @media (max-width: 720px) { .tabs { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin-left: -32px; margin-right: -32px; padding-left: 24px; padding-right: 24px; } .tabs::-webkit-scrollbar { display: none; } .tab-btn { flex: 0 0 auto; } }
   .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 9px 20px; cursor: pointer; transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease; }
   .tab-btn:hover { transform: translateY(-1px); }
-  .tab-btn.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .tab-btn.active { background: #2E2E2E; color: var(--ink); border-color: #3D3D3D; }
   .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .panel { display: none; }
   .panel.active { display: block; animation: panelIn 0.45s ease; }
   @keyframes panelIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
   .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 0 56px; }
   .kpi { background: var(--card); border: 1px solid var(--line); padding: 12px 26px; display: flex; align-items: baseline; gap: 6px; transition: transform 0.2s ease, border-color 0.2s ease; }
-  .kpi:hover { transform: translateY(-2px); border-color: var(--ink-3); }
+  .kpi:hover { transform: translateY(-2px); border-color: #3D3D3D; }
   .kpi .v { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
   .kpi .v-suf { font-size: 15px; font-weight: 600; color: var(--ink-2); }
   .kpi .l { font-size: 12px; color: var(--ink-2); margin-left: 4px; }
@@ -444,55 +445,58 @@ tpl = """<!DOCTYPE html>
   .ex-col { display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
   .ex-col .explain { height: 100%; justify-content: center; }
   .duo.flip .chart-col { order: 2; } .duo.flip .ex-col { order: 1; }
-  .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 22px; transition: border-color 0.25s ease; }
-  .chart:hover { border-color: var(--ink-3); }
+  .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px; transition: border-color 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  .chart:hover { border-color: #3D3D3D; box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
   .chart.tall { height: 340px; }
   .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 14px; }
   .legend .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 4px 14px; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
-  .funnel { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
+  .dot { width: 8px; height: 8px; border-radius: 12px; display: inline-block; }
+  .funnel { background: var(--card-2); border: 1px solid var(--line); border-radius: 16px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
   .step { display: grid; grid-template-columns: 160px 1fr 52px; align-items: center; gap: 12px; }
   .tag { font-size: 12px; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 4px 12px; text-align: center; white-space: nowrap; }
-  .bar-track { height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }
-  .bar-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+  .bar-track { height: 10px; background: var(--bg); border-radius: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0; background: var(--accent); border-radius: 8px; transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .pct { font-size: 13px; font-weight: 500; text-align: right; }
-  .explain { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .explain { background: var(--card-2); border: 1px solid var(--line); border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
   .ex-row { display: grid; grid-template-columns: 122px 1fr; gap: 14px; align-items: start; }
   .ex-tag { font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 3px 10px; text-align: center; white-space: nowrap; margin-top: 2px; }
   .ex-row p { font-size: 13px; color: var(--ink-2); }
   .ex-row.conc { border-top: 1px solid var(--line); padding-top: 12px; }
-  .ex-row.conc .ex-tag { background: var(--ink); color: var(--card); border-color: var(--ink); }
-  .ex-row.conc p { color: var(--ink); }
+  .ex-row.conc .ex-tag { background: var(--accent); color: #1A1A1A; border-color: var(--accent); }
+  .ex-row.conc p { color: #DADADA; }
   .below { max-width: 860px; margin: 20px auto 0; }
-  .hm { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+  .hm { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
   .hm-row { display: grid; grid-template-columns: 110px repeat(%N%, 1fr); gap: 6px; align-items: center; min-width: 560px; }
-  .hm-cell { border-radius: 999px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
+  .hm-cell { border-radius: 8px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
   .hm-h { background: transparent; color: var(--ink-3); font-weight: 500; }
-  .meter { max-width: 560px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
-  .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dbeafe, #ffe3c2); }
-  .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); transition: left 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+  .meter { max-width: 560px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; }
+  .meter-track { position: relative; height: 12px; border-radius: 12px; background: linear-gradient(90deg, rgba(224,164,88,0.30), rgba(154,168,143,0.30)); }
+  .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 50%; background: #EDEDED; border: 4px solid var(--card); transition: left 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 8px; }
   .vs { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
   .vs-row { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1.4fr); gap: 12px; align-items: center; }
-  .vs-l { font-size: 12px; color: var(--ink-3); background: var(--bg); border: 1px dashed var(--line); padding: 8px 16px; text-align: center; }
+  .vs-l { font-size: 12px; color: var(--ink-3); background: var(--bg); border: 1px dashed #3D3D3D; padding: 8px 16px; text-align: center; }
   .vs-r { font-size: 12px; color: var(--ink); background: var(--card); border: 1px solid var(--line); padding: 8px 16px; text-align: center; }
   .arr { color: var(--ink-3); font-size: 13px; text-align: center; }
   .method { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
   .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 0 0 28px; }
   .flow .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
   .q-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .q-card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s ease, border-color 0.2s ease; }
-  .q-card:hover { transform: translateY(-2px); border-color: var(--ink-3); }
+  .q-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px 26px; box-shadow: 0 1px 2px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s ease, border-color 0.2s ease; }
+  .q-card:hover { transform: translateY(-2px); border-color: #3D3D3D; }
   .q-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .q-head h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
   .verdict { font-size: 12px; font-weight: 500; padding: 4px 14px; white-space: nowrap; }
-  .verdict.good { background: #e8f7ee; color: #1d7d3f; border: 1px solid #c6ecd4; }
-  .verdict.warn { background: #fff3e0; color: #9a5b00; border: 1px solid #ffe2b8; }
+  .verdict.good { background: rgba(127,168,127,0.14); color: #9CC49C; border: 1px solid rgba(127,168,127,0.32); }
+  .verdict.warn { background: rgba(224,164,88,0.14); color: #E8B978; border: 1px solid rgba(224,164,88,0.32); }
   .q-txt { font-size: 13px; color: var(--ink-2); }
   .q-chart { position: relative; height: 120px; margin-top: 4px; }
   .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; flex: 1; }
   .chart.mini { min-height: 170px; padding: 14px; }
-  .kpi .v.up { color: #1d7d3f; } .kpi .v.down { color: #c25200; }
+  .kpi .v.up { color: #9CC49C; } .kpi .v.down { color: #E8B978; }
+  .kpis.quad { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .kpis.quad .kpi { flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 14px 16px; border-radius: 16px; }
+  .kpis.quad .kpi .l { margin-left: 0; }
   .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .rv.in { opacity: 1; transform: none; }
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
@@ -736,64 +740,64 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
 });
-Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
+Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = '#86868b';
+Chart.defaults.color = '#6F6F6F';
 Chart.defaults.animation.duration = reduced ? 0 : 900;
-const GRID = { color: '#f2f2f4' }, NOGRID = { display: false }, NOB = { display: false };
+const GRID = { color: '#242424' }, NOGRID = { display: false }, NOB = { display: false };
 const X = { ticks: { autoSkip: false }, grid: NOGRID, border: NOB };
 new Chart(document.getElementById('c7'), { type: 'doughnut',
-  data: { labels: ['Health', ''], datasets: [{ data: [D.HEALTH, 100 - D.HEALTH], backgroundColor: ['#0071e3', '#f2f2f4'], borderWidth: 0, borderRadius: 999 }] },
+  data: { labels: ['Health', ''], datasets: [{ data: [D.HEALTH, 100 - D.HEALTH], backgroundColor: ['#E0A458', '#2C2C2C'], borderWidth: 0, borderRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, cutout: '76%', plugins: { legend: { display: false }, tooltip: { enabled: false } } },
   plugins: [{ id: 'txt', afterDraw(ch) { const { ctx, chartArea: a } = ch; ctx.save();
-    ctx.font = '600 34px Inter'; ctx.fillStyle = '#1d1d1f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '600 34px Inter'; ctx.fillStyle = '#EDEDED'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(D.HEALTH, (a.left + a.right) / 2, (a.top + a.bottom) / 2 - 8);
-    ctx.font = '400 12px Inter'; ctx.fillStyle = '#aeaeb2'; ctx.fillText('of 100', (a.left + a.right) / 2, (a.top + a.bottom) / 2 + 16); ctx.restore(); } }] });
+    ctx.font = '400 12px Inter'; ctx.fillStyle = '#6F6F6F'; ctx.fillText('of 100', (a.left + a.right) / 2, (a.top + a.bottom) / 2 + 16); ctx.restore(); } }] });
 new Chart(document.getElementById('c1'), { type: 'line',
   data: { labels: D.PL, datasets: [
-    { data: D.IDX, borderColor: '#0071e3', backgroundColor: 'rgba(0,113,227,0.06)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.ROLL, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.35 },
-    { data: D.PMID, borderColor: '#0071e3', borderWidth: 2, borderDash: [3, 4], pointRadius: 0, tension: 0.2 },
-    { data: D.PHI, borderColor: 'transparent', pointRadius: 0, fill: '+1', backgroundColor: 'rgba(0,113,227,0.08)', tension: 0.2 },
+    { data: D.IDX, borderColor: '#E0A458', backgroundColor: 'rgba(224,164,88,0.10)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.ROLL, borderColor: '#6F6F6F', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.35 },
+    { data: D.PMID, borderColor: '#E0A458', borderWidth: 2, borderDash: [3, 4], pointRadius: 0, tension: 0.2 },
+    { data: D.PHI, borderColor: 'transparent', pointRadius: 0, fill: '+1', backgroundColor: 'rgba(224,164,88,0.12)', tension: 0.2 },
     { data: D.PLO, borderColor: 'transparent', pointRadius: 0, tension: 0.2 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
 new Chart(document.getElementById('c2'), { type: 'bar',
   data: { labels: D.L, datasets: [
-    { data: D.DECT, backgroundColor: '#0071e3', borderRadius: 999, maxBarThickness: 16 },
-    { data: D.DECC, backgroundColor: '#ff9500', borderRadius: 999, maxBarThickness: 16 },
-    { data: D.DECA, backgroundColor: '#aeaeb2', borderRadius: 999, maxBarThickness: 16 } ] },
+    { data: D.DECT, backgroundColor: '#E0A458', borderRadius: 6, maxBarThickness: 16 },
+    { data: D.DECC, backgroundColor: '#9AA88F', borderRadius: 6, maxBarThickness: 16 },
+    { data: D.DECA, backgroundColor: '#6F6F6F', borderRadius: 6, maxBarThickness: 16 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => ['visitors', 'conversion', 'order size'][c.datasetIndex] + ': ' + (c.parsed.y > 0 ? '+' : '') + c.parsed.y + ' pts' } } },
     scales: { x: { ...X, stacked: true }, y: { stacked: true, grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c3'), { type: 'line',
   data: { labels: D.FITX, datasets: [
-    { data: D.CONV, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.REP, borderColor: '#ff9500', borderWidth: 2, pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
-    { data: D.FITY, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [2, 4], pointRadius: 0 } ] },
+    { data: D.CONV, borderColor: '#E0A458', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.REP, borderColor: '#9AA88F', borderWidth: 2, pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
+    { data: D.FITY, borderColor: '#6F6F6F', borderWidth: 2, borderDash: [2, 4], pointRadius: 0 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c8'), { type: 'line',
   data: { labels: D.L, datasets: [
-    { data: D.CART, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.CHK, borderColor: '#ff9500', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
-    { data: D.BUY, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [2, 3], pointRadius: 3, pointStyle: 'triangle', tension: 0.35 } ] },
+    { data: D.CART, borderColor: '#E0A458', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.CHK, borderColor: '#9AA88F', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
+    { data: D.BUY, borderColor: '#6F6F6F', borderWidth: 2, borderDash: [2, 3], pointRadius: 3, pointStyle: 'triangle', tension: 0.35 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '% of sessions' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c4'), { type: 'line',
-  data: { labels: D.L, datasets: [{ data: D.AOV, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 }] },
+  data: { labels: D.L, datasets: [{ data: D.AOV, borderColor: '#E0A458', borderWidth: 2, pointRadius: 3, tension: 0.35 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
 new Chart(document.getElementById('c5'), { type: 'scatter',
-  data: { datasets: [{ data: D.SCAT, backgroundColor: '#ff9500', pointRadius: 6 }] },
+  data: { datasets: [{ data: D.SCAT, backgroundColor: '#9AA88F', pointRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.raw.m + ': ' + c.parsed.x + '% discount, ' + (c.parsed.y > 0 ? '+' : '') + c.parsed.y + '% growth' } } },
-    scales: { x: { grid: GRID, border: NOB, min: 0, max: 4.5, ticks: { callback: v => v + '%' }, title: { display: true, text: 'discount rate', color: '#aeaeb2' } },
-      y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' }, title: { display: true, text: 'MoM growth', color: '#aeaeb2' } } } } });
+    scales: { x: { grid: GRID, border: NOB, min: 0, max: 4.5, ticks: { callback: v => v + '%' }, title: { display: true, text: 'discount rate', color: '#6F6F6F' } },
+      y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' }, title: { display: true, text: 'MoM growth', color: '#6F6F6F' } } } } });
 new Chart(document.getElementById('c6'), { type: 'bar',
-  data: { labels: D.SLAB, datasets: [{ data: D.SHARES, backgroundColor: D.SLAB.map(l => l === 'All others' ? '#d2d2d7' : '#0071e3'), borderRadius: 999, maxBarThickness: 18 }] },
+  data: { labels: D.SLAB, datasets: [{ data: D.SHARES, backgroundColor: D.SLAB.map(l => l === 'All others' ? '#3A3A3A' : '#E0A458'), borderRadius: 6, maxBarThickness: 18 }] },
   options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.x.toFixed(1) + '% of net sales' } } },
     scales: { x: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } }, y: { grid: NOGRID, border: NOB } } } });
@@ -801,16 +805,16 @@ const MINI = { responsive: true, maintainAspectRatio: false, plugins: { legend: 
   scales: { x: { display: false }, y: { display: false } } };
 function spark(id, data, color, type) {
   new Chart(document.getElementById(id), { type: type || 'line',
-    data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: type === 'bar' ? color : color + '18', fill: type !== 'bar', borderWidth: 2, pointRadius: 0, tension: 0.35, borderRadius: 999, maxBarThickness: 14 }] }, options: MINI });
+    data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: type === 'bar' ? color : color + '18', fill: type !== 'bar', borderWidth: 2, pointRadius: 0, tension: 0.35, borderRadius: 6, maxBarThickness: 14 }] }, options: MINI });
 }
-spark('b1', D.IDX.slice(0, D.L.length), '#0071e3');
-spark('b2', D.CONV, '#0071e3');
-spark('b3', D.REP, '#ff9500');
-spark('b4', D.DISC, '#ff9500', 'bar');
-spark('b5', D.SHARES.slice(0, 5), '#0071e3', 'bar');
-spark('b6', D.RPS, '#0071e3');
+spark('b1', D.IDX.slice(0, D.L.length), '#E0A458');
+spark('b2', D.CONV, '#E0A458');
+spark('b3', D.REP, '#9AA88F');
+spark('b4', D.DISC, '#9AA88F', 'bar');
+spark('b5', D.SHARES.slice(0, 5), '#E0A458', 'bar');
+spark('b6', D.RPS, '#E0A458');
 if (D.WIDX.length) new Chart(document.getElementById('w1'), { type: 'bar',
-  data: { labels: D.WL, datasets: [{ data: D.WIDX, backgroundColor: D.WL.map(l => l.includes('*') ? '#aeaeb2' : '#0071e3'), borderRadius: 999, maxBarThickness: 30 }] },
+  data: { labels: D.WL, datasets: [{ data: D.WIDX, backgroundColor: D.WL.map(l => l.includes('*') ? '#6F6F6F' : '#E0A458'), borderRadius: 6, maxBarThickness: 30 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => 'index ' + c.parsed.y + (D.WL[c.dataIndex].includes('*') ? ' (partial week, 7-day pace)' : '') } } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
@@ -818,23 +822,23 @@ function dial(id, data, color, label, pct) {
   new Chart(document.getElementById(id), { type: 'line',
     data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: color + '14', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.35 }] },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, title: { display: true, text: label, color: '#6e6e73', font: { size: 12, weight: '500' } },
+      plugins: { legend: { display: false }, title: { display: true, text: label, color: '#6F6F6F', font: { size: 12, weight: '500' } },
         tooltip: { callbacks: { label: c => c.parsed.y + (pct ? '%' : '') } } },
-      scales: { x: { display: false }, y: { grid: { color: '#f2f2f4' }, border: { display: false }, ticks: { callback: v => v + (pct ? '%' : '') } } } } });
+      scales: { x: { display: false }, y: { grid: { color: '#242424' }, border: { display: false }, ticks: { callback: v => v + (pct ? '%' : '') } } } } });
 }
-dial('d1', D.ORD, '#0071e3', 'orders index');
-dial('d2', D.SESS, '#ff9500', 'sessions index');
-dial('d3', D.RPS, '#aeaeb2', 'revenue per session index');
-dial('d4', D.SHIP, '#34c759', 'shipping recovery %', true);
+dial('d1', D.ORD, '#E0A458', 'orders index');
+dial('d2', D.SESS, '#9AA88F', 'sessions index');
+dial('d3', D.RPS, '#6F6F6F', 'revenue per session index');
+dial('d4', D.SHIP, '#7FA87F', 'shipping recovery %', true);
 new Chart(document.getElementById('d5'), { type: 'line',
   data: { labels: D.L, datasets: [
-    { data: D.ABAN, borderColor: '#ff9500', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.CHKC, borderColor: '#34c759', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 } ] },
+    { data: D.ABAN, borderColor: '#9AA88F', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.CHKC, borderColor: '#7FA87F', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('d6'), { type: 'bar',
-  data: { labels: D.QL, datasets: [{ data: D.QIDX, backgroundColor: '#0071e3', borderRadius: 999, maxBarThickness: 44 }] },
+  data: { labels: D.QL, datasets: [{ data: D.QIDX, backgroundColor: '#E0A458', borderRadius: 6, maxBarThickness: 44 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => 'index ' + c.parsed.y } } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
