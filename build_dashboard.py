@@ -349,7 +349,7 @@ tpl = """<!DOCTYPE html>
 
   <footer><span class="pill">%SHOP% / shopify-fin-model / ShopifyQL</span></footer>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <script>
 const D = %DATA%;
 Chart.defaults.font.family = "'Inter', sans-serif";
@@ -426,6 +426,6 @@ out = (tpl.replace("%SHOP%", SHOP_NAME).replace("%MULT%", str(growth_mult))
     .replace("%SAY_C3%", say["c3"]).replace("%SAY_FUNNEL%", say["funnel"])
     .replace("%SAY_C4%", say["c4"]).replace("%SAY_C5%", say["c5"])
     .replace("%SAY_C6%", say["c6"]).replace("%SAY_HEALTH%", say["health"])
-    .replace("%SAY_HEAT%", say["heat"]).replace("%DATA%", json.dumps(D)))
+    .replace("%SAY_HEAT%", say["heat"]).replace("%DATA%", json.dumps(D).replace("</", "<\\/")))
 open("dashboard.html", "w").write(out)
 print("wrote dashboard.html", len(out), "bytes, health", health, "hhi_pos", round(hhi_pos), "anomalies", len(anoms))
