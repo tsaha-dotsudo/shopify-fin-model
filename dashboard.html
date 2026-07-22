@@ -10,57 +10,74 @@
   :root { --ink: #111114; --ink-2: #6f7076; --ink-3: #a4a5ab; --bg: #fbfbfa; --card: #ffffff; --line: #ececea; --accent: #2a78d6; --warm: #eb6834; }
   * { box-sizing: border-box; margin: 0; }
   body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 24px 72px; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 56px 32px 80px; }
   .pill { border-radius: 999px; }
   header { text-align: center; margin-bottom: 32px; }
   .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; }
-  h1 { font-size: clamp(26px, 4.5vw, 38px); font-weight: 600; letter-spacing: -0.02em; margin: 20px auto 8px; max-width: 560px; line-height: 1.2; }
-  .note { font-size: 13px; color: var(--ink-3); max-width: 520px; margin: 0 auto; }
-  .tabs { position: sticky; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 28px 0 40px; }
-  .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 8px 18px; cursor: pointer; }
+  h1 { font-size: clamp(28px, 4.5vw, 46px); font-weight: 600; letter-spacing: -0.02em; margin: 22px auto 10px; max-width: 640px; line-height: 1.15; }
+  .note { font-size: 13px; color: var(--ink-3); max-width: 560px; margin: 0 auto; }
+  .tabs { position: sticky; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 30px 0 48px; }
+  .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 9px 20px; cursor: pointer; transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease; }
+  .tab-btn:hover { transform: translateY(-1px); }
   .tab-btn.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
   .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .panel { display: none; }
-  .panel.active { display: block; }
-  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 0 48px; }
-  .kpi { background: var(--card); border: 1px solid var(--line); padding: 10px 22px; display: flex; align-items: baseline; gap: 8px; }
-  .kpi .v { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-  .kpi .l { font-size: 12px; color: var(--ink-2); }
-  section { margin-bottom: 56px; }
-  h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; text-align: center; }
-  .sub { font-size: 13px; color: var(--ink-2); text-align: center; margin: 4px 0 20px; }
-  .chart { position: relative; height: 280px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
-  .chart.tall { height: 330px; }
+  .panel.active { display: block; animation: panelIn 0.45s ease; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 0 56px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); padding: 12px 26px; display: flex; align-items: baseline; gap: 6px; transition: transform 0.2s ease, border-color 0.2s ease; }
+  .kpi:hover { transform: translateY(-2px); border-color: var(--ink-3); }
+  .kpi .v { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  .kpi .v-suf { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+  .kpi .l { font-size: 12px; color: var(--ink-2); margin-left: 4px; }
+  section { margin-bottom: 72px; }
+  h2 { font-size: clamp(18px, 2.2vw, 24px); font-weight: 600; letter-spacing: -0.01em; text-align: center; }
+  .sub { font-size: 14px; color: var(--ink-2); text-align: center; margin: 6px auto 26px; max-width: 620px; }
+  .duo { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+  .duo.flip .chart-col { order: 2; } .duo.flip .ex-col { order: 1; }
+  .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 22px; transition: border-color 0.25s ease; }
+  .chart:hover { border-color: var(--ink-3); }
+  .chart.tall { height: 340px; }
   .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 14px; }
   .legend .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 4px 14px; display: flex; align-items: center; gap: 6px; }
   .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .funnel { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .funnel { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
   .step { display: grid; grid-template-columns: 160px 1fr 52px; align-items: center; gap: 12px; }
   .tag { font-size: 12px; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 4px 12px; text-align: center; white-space: nowrap; }
   .bar-track { height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }
-  .bar-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .bar-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .pct { font-size: 13px; font-weight: 500; text-align: right; }
-  .explain { max-width: 680px; margin: 18px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
-  .ex-row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: start; }
+  .explain { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .ex-row { display: grid; grid-template-columns: 122px 1fr; gap: 14px; align-items: start; }
   .ex-tag { font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 3px 10px; text-align: center; white-space: nowrap; margin-top: 2px; }
   .ex-row p { font-size: 13px; color: var(--ink-2); }
-  .hm { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+  .ex-row.conc { border-top: 1px solid var(--line); padding-top: 12px; }
+  .ex-row.conc .ex-tag { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .ex-row.conc p { color: var(--ink); }
+  .below { max-width: 860px; margin: 20px auto 0; }
+  .hm { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
   .hm-row { display: grid; grid-template-columns: 110px repeat(9, 1fr); gap: 6px; align-items: center; min-width: 560px; }
   .hm-cell { border-radius: 999px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
   .hm-h { background: transparent; color: var(--ink-3); font-weight: 500; }
-  .meter { max-width: 520px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
+  .meter { max-width: 560px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
   .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dce9f8, #f8ddd2); }
-  .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); }
+  .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); transition: left 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 8px; }
-  .method { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-  .method .explain { margin: 0; max-width: none; }
+  .vs { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .vs-row { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1.4fr); gap: 12px; align-items: center; }
+  .vs-l { font-size: 12px; color: var(--ink-3); background: var(--bg); border: 1px dashed var(--line); padding: 8px 16px; text-align: center; }
+  .vs-r { font-size: 12px; color: var(--ink); background: var(--card); border: 1px solid var(--line); padding: 8px 16px; text-align: center; }
+  .arr { color: var(--ink-3); font-size: 13px; text-align: center; }
+  .method { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
   .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 0 0 28px; }
   .flow .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
-  .flow .arr { color: var(--ink-3); font-size: 13px; }
+  .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .rv.in { opacity: 1; transform: none; }
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
   footer .pill { display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
+  @media (max-width: 860px) { .duo { grid-template-columns: 1fr; } .duo.flip .chart-col { order: 1; } .duo.flip .ex-col { order: 2; } .vs-row { grid-template-columns: 1fr; } .arr { transform: rotate(90deg); } }
   @media (max-width: 560px) { .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
+  @media (prefers-reduced-motion: reduce) { .rv, .panel.active, .bar-fill, .meter-dot, .tab-btn, .kpi, .chart { transition: none; animation: none; } .rv { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
@@ -74,20 +91,39 @@
   <nav class="tabs" role="tablist"><button class="pill tab-btn active" data-tab="overview">Overview</button><button class="pill tab-btn" data-tab="growth">Growth</button><button class="pill tab-btn" data-tab="customers">Customers & funnel</button><button class="pill tab-btn" data-tab="economics">Economics & products</button><button class="pill tab-btn" data-tab="method">Method</button></nav>
 
   <div class="panel active" id="panel-overview">
-    <div class="kpis"><div class="pill kpi"><span class="v">7.4x</span><span class="l">net sales growth</span></div><div class="pill kpi"><span class="v">3.2%</span><span class="l">conversion</span></div><div class="pill kpi"><span class="v">27.8%</span><span class="l">repeat rate</span></div><div class="pill kpi"><span class="v">0.7%</span><span class="l">returns</span></div><div class="pill kpi"><span class="v">2.2%</span><span class="l">discounts</span></div><div class="pill kpi"><span class="v">90</span><span class="l">health score</span></div></div>
+    <div class="kpis"><div class="pill kpi rv"><span class="v" data-count="7.4">7.4</span><span class="v-suf">x</span><span class="l">net sales growth</span></div><div class="pill kpi rv"><span class="v" data-count="3.2">3.2</span><span class="v-suf">%</span><span class="l">conversion</span></div><div class="pill kpi rv"><span class="v" data-count="27.8">27.8</span><span class="v-suf">%</span><span class="l">repeat rate</span></div><div class="pill kpi rv"><span class="v" data-count="0.7">0.7</span><span class="v-suf">%</span><span class="l">returns</span></div><div class="pill kpi rv"><span class="v" data-count="2.2">2.2</span><span class="v-suf">%</span><span class="l">discounts</span></div><div class="pill kpi rv"><span class="v" data-count="90">90</span><span class="v-suf"></span><span class="l">health score</span></div></div>
+    
+    <section class="rv">
+      <h2>Why this exists</h2>
+      <p class="sub">Shopify's built-in reports are good at counting. This pipeline exists for the questions counting can't answer.</p>
+      <div class="vs">
+        <div class="vs-row"><span class="pill vs-l">Shopify shows metrics in isolation</span><span class="arr">-></span><span class="pill vs-r">Growth is decomposed into visitors x conversion x order size, so you know WHY a month moved</span></div>
+        <div class="vs-row"><span class="pill vs-l">Absolute numbers only, private by necessity</span><span class="arr">-></span><span class="pill vs-r">Indexed and anonymized, so performance can be shared publicly without revealing a single rupee</span></div>
+        <div class="vs-row"><span class="pill vs-l">Revenue, but no costs</span><span class="arr">-></span><span class="pill vs-r">The companion Excel model adds COGS, courier, packaging and gateway assumptions for true contribution margin</span></div>
+        <div class="vs-row"><span class="pill vs-l">History, but no forward view</span><span class="arr">-></span><span class="pill vs-r">Run-rate for the current month plus a probability cone for the next three</span></div>
+        <div class="vs-row"><span class="pill vs-l">You must notice unusual months yourself</span><span class="arr">-></span><span class="pill vs-r">Anomalies auto-flagged at 1.5 standard deviations, with the math shown</span></div>
+        <div class="vs-row"><span class="pill vs-l">Charts you have to interpret</span><span class="arr">-></span><span class="pill vs-r">Every chart carries a computed what / how / watch / conclusion card in plain language</span></div>
+      </div>
+    </section>
+
     <section>
       <h2>Health scorecard</h2>
-      <p class="sub">Five metrics scored against benchmarks, averaged into one number</p>
-      <div class="grid2">
-        <div class="chart"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
-        <div class="funnel"><div class="step"><span class="pill tag">Conversion</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100</span></div><div class="step"><span class="pill tag">Repeat rate</span><div class="bar-track"><div class="bar-fill" style="width:93%"></div></div><span class="pct">93</span></div><div class="step"><span class="pill tag">Low returns</span><div class="bar-track"><div class="bar-fill" style="width:86%"></div></div><span class="pct">86</span></div><div class="step"><span class="pill tag">Discount discipline</span><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div><span class="pct">72</span></div><div class="step"><span class="pill tag">Growth momentum</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100</span></div></div>
+      <p class="sub">Five metrics scored against healthy-store benchmarks and averaged into one number</p>
+      <div class="duo">
+        <div class="chart-col">
+          <div class="chart rv"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
+          <div class="funnel rv" style="margin-top: 20px;"><div class="step"><span class="pill tag">Conversion</span><div class="bar-track"><div class="bar-fill" data-w="100"></div></div><span class="pct">100</span></div><div class="step"><span class="pill tag">Repeat rate</span><div class="bar-track"><div class="bar-fill" data-w="93"></div></div><span class="pct">93</span></div><div class="step"><span class="pill tag">Low returns</span><div class="bar-track"><div class="bar-fill" data-w="86"></div></div><span class="pct">86</span></div><div class="step"><span class="pill tag">Discount discipline</span><div class="bar-track"><div class="bar-fill" data-w="72"></div></div><span class="pct">72</span></div><div class="step"><span class="pill tag">Growth momentum</span><div class="bar-track"><div class="bar-fill" data-w="100"></div></div><span class="pct">100</span></div></div>
+        </div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>One number for the store's overall condition: 90/100, averaged from the five component scores shown as bars.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each metric is scored 0-100 against a healthy-store benchmark: conversion vs 3%, repeat rate vs 30%, returns vs a 5% ceiling, discounts vs an 8% ceiling, and 3-month growth vs 15% monthly. Equal weights, simple average.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Any bar under 50 is the weakest link and the first thing to work on.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>At 90/100 this store is operating well above the typical small D2C store. The lowest component is discount discipline at 72/100, which makes it the highest-leverage place to spend effort next: every point recovered there moves the composite more than polishing an already-strong metric. The score is deliberately harsh on growth momentum during slow months, so a dip after a spike month is expected behavior, not decay.</p></div></div></div>
       </div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>One number for the store's overall condition: 90/100, averaged from five component scores shown as bars.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each metric is scored 0-100 against a healthy-store benchmark: conversion vs 3%, repeat rate vs 30%, returns vs a 5% ceiling, discounts vs an 8% ceiling, and growth vs 15% average monthly. The five scores are averaged with equal weight.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Any bar sitting under 50 is the weakest link and the first thing to work on.</p></div></div>
     </section>
     <section>
       <h2>Net sales index, trend and projection</h2>
-      <div class="chart"><canvas id="c1" role="img" aria-label="Net sales index with rolling average and projection band"></canvas></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Monthly net sales as an index: first full month = 100, latest full month = 736. That is 7.4x growth with no real amounts revealed.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Monthly P&L pulled via ShopifyQL, indexed to hide currency. The current month is scaled to full-month pace from days elapsed. The gray dashed line is a 3-month rolling average. The cone projects 3 months forward by compounding the historical average log-growth, widened by one standard deviation each way.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Whether the solid line stays above the dashed trend, and how wide the cone is: a narrow cone means growth has been consistent enough to predict.</p></div></div>
+      <p class="sub">First full month = 100. Cone = the next three months if history repeats</p>
+      <div class="duo flip">
+        <div class="chart-col"><div class="chart rv"><canvas id="c1" role="img" aria-label="Net sales index with rolling average and projection band"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Monthly net sales as an index: first full month = 100, latest full month = 736. That is 7.4x growth with no real amounts revealed.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Monthly P&L pulled via ShopifyQL, indexed to hide currency. The current month is scaled to full-month pace from days elapsed. The gray dashed line is a 3-month rolling average; the cone compounds historical average log-growth plus and minus one standard deviation.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Whether the solid line stays above the dashed trend, and how wide the cone is: a narrow cone means growth has been consistent enough to predict.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>The trajectory is genuinely strong: 7.4x in 8 months with only one negative month. The current month is pacing at 629 vs 736 last month, a pullback that the decomposition tab attributes to traffic, not the store itself. If history repeats, the cone puts the next three months around 836, 1112 and 1479; the width of that cone says treat these as direction, not promises. The single most important thing this chart asks of the operator: keep the traffic engine running, because the store converts whatever arrives.</p></div></div></div>
+      </div>
     </section>
   </div>
 
@@ -99,18 +135,21 @@
         <span class="pill"><span class="dot" style="background: var(--warm)"></span>better conversion</span>
         <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>bigger orders</span>
       </div>
-      <div class="chart"><canvas id="c2" role="img" aria-label="Growth decomposition stacked bars"></canvas></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Each month's growth split into its three possible causes: more visitors, better conversion, or bigger orders.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Net sales is the product of sessions, conversion rate, and average order value, so log-differences of each factor split every month's change into three additive parts, shown stacked.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Which color dominates. This store's bars are mostly blue: growth is traffic-led, so marketing reach matters more than site tweaks right now.</p></div></div>
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="c2" role="img" aria-label="Growth decomposition stacked bars"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Each month's growth split into its three possible causes: more visitors, better conversion, or bigger orders.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Net sales is the product of sessions, conversion rate and average order value, so log-differences of each factor split every month's change into three additive parts, shown stacked.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Which color dominates. This store's bars are mostly blue: growth is traffic-led.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>The blue dominance is the deepest strategic fact on this page. It means the product and the store already work; the binding constraint is how many people see it. Practical reading: a rupee spent on reach (content, SEO, ads, marketplace presence) buys more growth right now than a rupee spent on site optimization, because conversion is already above benchmark at 3.2%. The orange slices appearing in recent months are a bonus signal: conversion is improving on its own as the catalog and reviews mature. The gray slices staying near zero confirm the AOV chart's story that order size has not been worked as a lever yet.</p></div></div></div>
+      </div>
     </section>
     <section>
       <h2>Momentum heatmap</h2>
-      <div class="hm"><div class="hm-row"><span class="pill tag" style="visibility:hidden">x</span><div class="hm-cell hm-h">M1</div><div class="hm-cell hm-h">M2</div><div class="hm-cell hm-h">M3</div><div class="hm-cell hm-h">M4</div><div class="hm-cell hm-h">M5</div><div class="hm-cell hm-h">M6</div><div class="hm-cell hm-h">M7</div><div class="hm-cell hm-h">M8</div><div class="hm-cell hm-h">M9*</div></div><div class="hm-row"><span class="pill tag">Sales</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+31%</div><div class="hm-cell" style="background:rgba(42,120,214,0.30)">+10%</div><div class="hm-cell" style="background:rgba(42,120,214,0.35)">+12%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+86%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+30%</div><div class="hm-cell" style="background:rgba(42,120,214,0.66)">+29%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+45%</div><div class="hm-cell" style="background:rgba(235,104,52,0.39)">-15%</div></div><div class="hm-row"><span class="pill tag">Sessions</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(235,104,52,0.67)">-35%</div><div class="hm-cell" style="background:rgba(42,120,214,0.43)">+17%</div><div class="hm-cell" style="background:rgba(235,104,52,0.22)">-5%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+169%</div><div class="hm-cell" style="background:rgba(235,104,52,0.44)">-18%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+74%</div><div class="hm-cell" style="background:rgba(42,120,214,0.48)">+20%</div><div class="hm-cell" style="background:rgba(235,104,52,0.60)">-26%</div></div><div class="hm-row"><span class="pill tag">Conversion</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+91%</div><div class="hm-cell" style="background:rgba(42,120,214,0.29)">+10%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+30%</div><div class="hm-cell" style="background:rgba(235,104,52,0.61)">-27%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+36%</div><div class="hm-cell" style="background:rgba(235,104,52,0.55)">-23%</div><div class="hm-cell" style="background:rgba(42,120,214,0.28)">+9%</div><div class="hm-cell" style="background:rgba(42,120,214,0.63)">+28%</div></div><div class="hm-row"><span class="pill tag">Repeat rate</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+87%</div><div class="hm-cell" style="background:rgba(235,104,52,0.42)">-16%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+35%</div><div class="hm-cell" style="background:rgba(235,104,52,0.67)">-34%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+48%</div><div class="hm-cell" style="background:rgba(42,120,214,0.53)">+22%</div><div class="hm-cell" style="background:rgba(235,104,52,0.17)">-3%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+36%</div></div><div class="hm-row"><span class="pill tag">AOV</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.18)">+3%</div><div class="hm-cell" style="background:rgba(235,104,52,0.30)">-10%</div><div class="hm-cell" style="background:rgba(235,104,52,0.30)">-10%</div><div class="hm-cell" style="background:rgba(42,120,214,0.16)">+2%</div><div class="hm-cell" style="background:rgba(42,120,214,0.33)">+12%</div><div class="hm-cell" style="background:rgba(235,104,52,0.18)">-3%</div><div class="hm-cell" style="background:rgba(42,120,214,0.30)">+10%</div><div class="hm-cell" style="background:rgba(235,104,52,0.17)">-3%</div></div></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Five metrics tracked month by month in one grid: a compressed view of momentum across the whole business.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each cell is that metric's percent change vs the prior month. Blue means it improved, orange declined, and deeper color means a bigger move (capped at 30% for readability).</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Columns that go orange across several rows at once: that is a genuinely bad month, not one noisy metric.</p></div></div>
+      <p class="sub">Blue = improved vs prior month, orange = declined, deeper = bigger move</p>
+      <div class="hm rv"><div class="hm-row"><span class="pill tag" style="visibility:hidden">x</span><div class="hm-cell hm-h">M1</div><div class="hm-cell hm-h">M2</div><div class="hm-cell hm-h">M3</div><div class="hm-cell hm-h">M4</div><div class="hm-cell hm-h">M5</div><div class="hm-cell hm-h">M6</div><div class="hm-cell hm-h">M7</div><div class="hm-cell hm-h">M8</div><div class="hm-cell hm-h">M9*</div></div><div class="hm-row"><span class="pill tag">Sales</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+31%</div><div class="hm-cell" style="background:rgba(42,120,214,0.30)">+10%</div><div class="hm-cell" style="background:rgba(42,120,214,0.35)">+12%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+86%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+30%</div><div class="hm-cell" style="background:rgba(42,120,214,0.66)">+29%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+45%</div><div class="hm-cell" style="background:rgba(235,104,52,0.39)">-15%</div></div><div class="hm-row"><span class="pill tag">Sessions</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(235,104,52,0.67)">-35%</div><div class="hm-cell" style="background:rgba(42,120,214,0.43)">+17%</div><div class="hm-cell" style="background:rgba(235,104,52,0.22)">-5%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+169%</div><div class="hm-cell" style="background:rgba(235,104,52,0.44)">-18%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+74%</div><div class="hm-cell" style="background:rgba(42,120,214,0.48)">+20%</div><div class="hm-cell" style="background:rgba(235,104,52,0.60)">-26%</div></div><div class="hm-row"><span class="pill tag">Conversion</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+91%</div><div class="hm-cell" style="background:rgba(42,120,214,0.29)">+10%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+30%</div><div class="hm-cell" style="background:rgba(235,104,52,0.61)">-27%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+36%</div><div class="hm-cell" style="background:rgba(235,104,52,0.55)">-23%</div><div class="hm-cell" style="background:rgba(42,120,214,0.28)">+9%</div><div class="hm-cell" style="background:rgba(42,120,214,0.63)">+28%</div></div><div class="hm-row"><span class="pill tag">Repeat rate</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+87%</div><div class="hm-cell" style="background:rgba(235,104,52,0.42)">-16%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+35%</div><div class="hm-cell" style="background:rgba(235,104,52,0.67)">-34%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+48%</div><div class="hm-cell" style="background:rgba(42,120,214,0.53)">+22%</div><div class="hm-cell" style="background:rgba(235,104,52,0.17)">-3%</div><div class="hm-cell" style="background:rgba(42,120,214,0.67)">+36%</div></div><div class="hm-row"><span class="pill tag">AOV</span><div class="hm-cell" style="background:#f1f1ef"></div><div class="hm-cell" style="background:rgba(42,120,214,0.18)">+3%</div><div class="hm-cell" style="background:rgba(235,104,52,0.30)">-10%</div><div class="hm-cell" style="background:rgba(235,104,52,0.30)">-10%</div><div class="hm-cell" style="background:rgba(42,120,214,0.16)">+2%</div><div class="hm-cell" style="background:rgba(42,120,214,0.33)">+12%</div><div class="hm-cell" style="background:rgba(235,104,52,0.18)">-3%</div><div class="hm-cell" style="background:rgba(42,120,214,0.30)">+10%</div><div class="hm-cell" style="background:rgba(235,104,52,0.17)">-3%</div></div></div>
+      <div class="below"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Five metrics tracked month by month in one grid: a compressed view of momentum across the whole business.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each cell is that metric's percent change vs the prior month. Blue improved, orange declined, deeper color means a bigger move (capped at 30% for readability).</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Columns that go orange across several rows at once: that is a genuinely bad month, not one noisy metric.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>Read this grid by column, not cell. Most columns are majority blue, which is what a compounding store looks like. Where orange appears it clusters in the sessions row rather than conversion or repeat, reinforcing that the volatile input is traffic while the store's internal mechanics improve almost monotonically. The healthiest detail is the repeat-rate row: it stays blue even in months where sales dip, meaning customer quality is decoupled from traffic luck. If a future month ever shows orange across sales, sessions AND conversion simultaneously, that is the early-warning pattern that deserves a same-week response.</p></div></div></div>
     </section>
     <section>
       <h2>Anomalies detected</h2>
-      <div class="kpis" style="margin: 16px 0 0;"><div class="pill kpi"><span class="l">M5: +85.8% spike (+1.9 sd from the 29% average)</span></div></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Months where growth broke sharply from the store's own pattern, flagged automatically.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each month's growth is compared to the store's average (29%) in standard deviations; anything beyond 1.5 sd is flagged.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Flags deserve an explanation you can name: a launch, a campaign, a stockout. An unexplained flag is the one worth investigating.</p></div></div>
+      <div class="kpis" style="margin: 16px 0 20px;"><div class="pill kpi"><span class="l">M5: +85.8% spike (+1.9 sd from the 29% average)</span></div></div>
+      <div class="below"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Months where growth broke sharply from the store's own pattern, flagged automatically.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each month's growth is compared to the store's average (29%) in standard deviations; anything beyond 1.5 sd is flagged.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Flags deserve an explanation you can name: a launch, a campaign, a stockout.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>Exactly one anomaly across the whole history is itself the finding: this growth curve is unusually orderly for an early-stage store. The flagged spike month should be documented while memory is fresh (what launched, what was posted, what went viral), because a repeatable cause is a playbook, and an unrepeatable one should be excluded when setting expectations. The projection cone on the overview tab already treats that month as part of normal variance; if it was truly one-off, real future months will tend toward the lower half of the cone.</p></div></div></div>
     </section>
   </div>
 
@@ -122,41 +161,57 @@
         <span class="pill"><span class="dot" style="background: var(--warm)"></span>repeat rate</span>
         <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>repeat trend to M12 (dotted)</span>
       </div>
-      <div class="chart"><canvas id="c3" role="img" aria-label="Conversion and repeat rate with fitted projection"></canvas></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>How well visits become buyers (3.2 per 100 visitors) and how many buyers come back (27.8 per 100 buyers).</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Conversion comes from the sessions report, repeat rate from the customers report. The dotted line is a least-squares fit through repeat rate, extended to month 12, currently landing near 29.6%.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Typical online stores convert 1.5 to 2.5 per 100. Repeat rate climbing while sales grow means new customers are being kept, not just acquired.</p></div></div>
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="c3" role="img" aria-label="Conversion and repeat rate with fitted projection"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>How well visits become buyers (3.2 per 100 visitors) and how many buyers come back (27.8 per 100 buyers).</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Conversion comes from the sessions report, repeat rate from the customers report. The dotted line is a least-squares fit through repeat rate, extended to month 12, currently landing near 29.6%.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Typical online stores convert 1.5 to 2.5 per 100. Repeat rate climbing while sales grow means customers are being kept, not just acquired.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>Two conclusions stack here. First, at 3.2% conversion the store outperforms the typical range, so paid traffic economics are better than average: the same ad spend yields roughly 16% more orders than a store converting half a point lower. Second, and more valuable long-term, repeat rate has more than tripled since launch and the fitted trend reaches about 29.6% by month 12. Repeat customers arrive free, which mechanically raises margin over time. The strategic implication: an email/WhatsApp flow and a colour-drop cadence are not nice-to-haves, they are the cheapest growth channel this data can identify.</p></div></div></div>
+      </div>
     </section>
     <section>
       <h2>The funnel, now and over time</h2>
-      <div class="funnel" style="margin-bottom: 20px;"><div class="step"><span class="pill tag">Visited</span><div class="bar-track"><div class="bar-fill" style="width:100.0%"></div></div><span class="pct">100%</span></div><div class="step"><span class="pill tag">Added to cart</span><div class="bar-track"><div class="bar-fill" style="width:9.5%"></div></div><span class="pct">9.5%</span></div><div class="step"><span class="pill tag">Reached checkout</span><div class="bar-track"><div class="bar-fill" style="width:8.1%"></div></div><span class="pct">8.1%</span></div><div class="step"><span class="pill tag">Purchased</span><div class="bar-track"><div class="bar-fill" style="width:3.2%"></div></div><span class="pct">3.2%</span></div></div>
-      <div class="legend">
-        <span class="pill"><span class="dot" style="background: var(--accent)"></span>added to cart %</span>
-        <span class="pill"><span class="dot" style="background: var(--warm)"></span>reached checkout %</span>
-        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>purchased %</span>
+      <div class="duo flip">
+        <div class="chart-col">
+          <div class="funnel rv" style="margin-bottom: 20px;"><div class="step"><span class="pill tag">Visited</span><div class="bar-track"><div class="bar-fill" data-w="100.0"></div></div><span class="pct">100%</span></div><div class="step"><span class="pill tag">Added to cart</span><div class="bar-track"><div class="bar-fill" data-w="9.5"></div></div><span class="pct">9.5%</span></div><div class="step"><span class="pill tag">Reached checkout</span><div class="bar-track"><div class="bar-fill" data-w="8.1"></div></div><span class="pct">8.1%</span></div><div class="step"><span class="pill tag">Purchased</span><div class="bar-track"><div class="bar-fill" data-w="3.2"></div></div><span class="pct">3.2%</span></div></div>
+          <div class="chart rv"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
+        </div>
+        <div class="ex-col">
+          <div class="legend" style="justify-content: flex-start;">
+            <span class="pill"><span class="dot" style="background: var(--accent)"></span>added to cart %</span>
+            <span class="pill"><span class="dot" style="background: var(--warm)"></span>reached checkout %</span>
+            <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>purchased %</span>
+          </div>
+          <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Where visitors drop off: out of 100 sessions last month, 9.5 added to cart, 3.2 purchased. The lines track each stage across all months.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each stage's sessions divided by total sessions for that month, so every figure reads as per-100-visitors.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Rising lines mean the funnel is tightening: losing fewer people per step.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>The largest loss is visit to cart, where 90.5 of every 100 visitors exit. That is normal for e-commerce but it defines the priority order for site work: product-page persuasion (photos, reviews, sizing clarity) outranks checkout tweaks, because the checkout stages already convert well once reached. The over-time lines add a subtler conclusion: all three stage-rates have trended up together, so past site changes have compounded rather than shuffled the losses between stages. Keep changes incremental; nothing in this funnel is broken enough to justify a risky redesign.</p></div></div>
+        </div>
       </div>
-      <div class="chart"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Where visitors drop off: out of 100 sessions last month, 9.5 added to cart, 3.2 purchased. The lines below track each stage across all months.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each stage's sessions divided by total sessions for that month, so every figure reads as per-100-visitors.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Rising lines mean the funnel is tightening. The biggest loss is always visit-to-cart; small gains there outweigh anything later in the funnel.</p></div></div>
     </section>
   </div>
 
   <div class="panel" id="panel-economics">
     <section>
       <h2>Average order value</h2>
-      <div class="chart"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>The size of a typical order, indexed. Currently 99 vs 100 in month one: essentially flat.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Average order value from the customers report, indexed the same way as sales to hide currency.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Flat AOV while sales multiply means all growth came from order count. AOV is the untouched lever: bundles and free-shipping thresholds move it.</p></div></div>
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>The size of a typical order, indexed. Currently 99 vs 100 in month one: essentially flat.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Average order value from the customers report, indexed the same way as sales to hide currency.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Flat AOV while sales multiply means all growth came from order count.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>This is the clearest untapped lever on the page. AOV has moved within a narrow band (84 to 103) for the whole history while everything else compounded, which means nothing has been tried: no bundles, no tiered free-shipping threshold, no volume pricing. The arithmetic is forgiving: lifting AOV just 10 index points at current order volume adds roughly a tenth to revenue with zero additional traffic or conversion work. The natural first experiment given the catalog is an accessory-plus-band bundle anchored on the most-ordered low-value product, priced to nudge the typical order up one notch.</p></div></div></div>
+      </div>
     </section>
     <section>
       <h2>Did discounts buy growth?</h2>
-      <div class="chart"><canvas id="c5" role="img" aria-label="Discount rate versus growth scatter"></canvas></div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Whether discounting bought growth. Each dot is one month: discounts given vs growth achieved.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Monthly discount rate (discounts as % of gross) plotted against that month's sales growth.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>A rising pattern would mean growth was purchased with margin. This scatter shows no such pattern: the best growth months were not the heaviest discount months.</p></div></div>
+      <div class="duo flip">
+        <div class="chart-col"><div class="chart rv"><canvas id="c5" role="img" aria-label="Discount rate versus growth scatter"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Whether discounting bought growth. Each dot is one month: discounts given vs growth achieved.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Monthly discount rate (discounts as % of gross) plotted against that month's sales growth.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>A rising pattern would mean growth was purchased with margin.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>The correlation between discount rate and growth is 0.41: a weak-to-moderate link, and with only 8 months of data it is suggestive rather than conclusive. The biggest spike month did coincide with the heaviest promotion period, so discounts likely amplified an already-good month rather than created it. The honest conclusion: promotions may add a tailwind, but the store also grew strongly in low-discount months, so margin should not be spent chasing this correlation. Keep discounts event-driven and re-test this chart at 12+ months when the sample can actually settle the question.</p></div></div></div>
+      </div>
     </section>
     <section>
       <h2>Product concentration</h2>
-      <div class="chart tall"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
-      <div class="meter">
-        <div class="meter-track"><div class="meter-dot" style="left: 17%"></div></div>
-        <div class="meter-labels"><span>diversified</span><span>concentrated</span></div>
+      <div class="duo">
+        <div class="chart-col">
+          <div class="chart tall rv"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
+          <div class="meter rv">
+            <div class="meter-track"><div class="meter-dot" data-left="17" style="left: 0%"></div></div>
+            <div class="meter-labels"><span>diversified</span><span>concentrated</span></div>
+          </div>
+        </div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>How dependent the store is on its best sellers: the top product holds 10.1% of sales, the top five together 35.7%.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each product's share of total net sales, names anonymized to letters. The meter is a Herfindahl-style concentration index scored against the 0.25 threshold economists use for high concentration.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>A dot far right means one product's slowdown hurts everything.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>With the top product at 10.1% and the meter sitting well left of the concentration threshold, no single product failure can seriously wound this store: the long tail carries 64.3% of sales. That diversification is a genuine moat for a small operation, and it changes how new launches should be judged: a new product does not need to become a bestseller to be worth keeping, it needs to add a few durable points to the tail. The one watch-item is family-level concentration, which letter-level anonymization hides: if the top products all serve the same device ecosystem, platform risk is higher than this chart alone suggests.</p></div></div></div>
       </div>
-      <div class="explain"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>How dependent the store is on its best sellers: the top product holds 10.1% of sales, the top five together 35.7%.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Each product's share of total net sales, with names anonymized to letters. The meter is a Herfindahl-style concentration index scored against the 0.25 threshold economists use for high concentration.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>A dot far right means one product's slowdown hurts everything. This store sits left: diversified across many products.</p></div></div>
     </section>
   </div>
 
@@ -164,18 +219,18 @@
     <section>
       <h2>How this page is made</h2>
       <p class="sub">A four-step pipeline, rebuilt on every refresh</p>
-      <div class="flow">
+      <div class="flow rv">
         <span class="pill">Shopify (ShopifyQL)</span><span class="arr">-></span>
         <span class="pill">4 CSV reports</span><span class="arr">-></span>
         <span class="pill">build_dashboard.py</span><span class="arr">-></span>
         <span class="pill">this page</span>
       </div>
       <div class="method">
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">the reports</span><p>Four ShopifyQL queries feed everything: monthly P&L (orders, gross, discounts, returns, net, shipping), product-level sales, customer counts with repeat rate and AOV, and the session funnel. Nothing else is collected.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">anonymization</span><p>Months are renamed M1..Mn. Sales and AOV are divided by their first-full-month value and shown as an index where 100 = month one. Products are relabeled A through E. Only rates, ratios, shares, and indexes survive to this page; no absolute rupee amount, order count, or visitor count appears anywhere in the HTML source.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">the math</span><p>Partial months are projected to full-month pace from days elapsed. The projection cone compounds average historical log-growth plus and minus one standard deviation. Growth decomposition uses log-differences of sessions x conversion x AOV. The repeat-rate trend is a least-squares fit. Anomalies are months beyond 1.5 standard deviations from average growth. The concentration meter is a Herfindahl index scored against the 0.25 high-concentration threshold.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">glossary</span><p>Index: month one = 100, everything relative to it. Conversion: buyers per 100 visitors. Repeat rate: returning buyers per 100 buyers. AOV: the size of a typical order. Net sales: gross minus discounts and returns. * : partial month at run-rate. p : projected month.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">integrity</span><p>The chart library is loaded with a cryptographic integrity hash, so a tampered copy will refuse to run. All numbers on this page are generated by code from the source reports; none are typed by hand.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">the reports</span><p>Four ShopifyQL queries feed everything: monthly P&L (orders, gross, discounts, returns, net, shipping), product-level sales, customer counts with repeat rate and AOV, and the session funnel. Nothing else is collected.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">anonymization</span><p>Months are renamed M1..Mn. Sales and AOV are divided by their first-full-month value and shown as an index where 100 = month one. Products are relabeled A through E. Only rates, ratios, shares, and indexes survive to this page; no absolute rupee amount, order count, or visitor count appears anywhere in the HTML source.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">the math</span><p>Partial months are projected to full-month pace from days elapsed. The projection cone compounds average historical log-growth plus and minus one standard deviation. Growth decomposition uses log-differences of sessions x conversion x AOV. The repeat-rate trend is a least-squares fit. Anomalies are months beyond 1.5 standard deviations from average growth. The concentration meter is a Herfindahl index scored against the 0.25 high-concentration threshold.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">glossary</span><p>Index: month one = 100, everything relative to it. Conversion: buyers per 100 visitors. Repeat rate: returning buyers per 100 buyers. AOV: the size of a typical order. Net sales: gross minus discounts and returns. * : partial month at run-rate. p : projected month.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">integrity</span><p>The chart library is loaded with a cryptographic integrity hash, so a tampered copy will refuse to run. All numbers on this page are generated by code from the source reports; none are typed by hand.</p></div></div>
       </div>
     </section>
   </div>
@@ -185,19 +240,41 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <script>
 const D = {"L": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*"], "PL": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*", "M10p", "M11p", "M12p"], "IDX": [100, 131, 144, 162, 301, 391, 506, 736, 629, null, null, null], "ROLL": [null, null, 125, 146, 202, 285, 399, 544, 624, null, null, null], "PMID": [null, null, null, null, null, null, null, null, 629, 836, 1112, 1479], "PHI": [null, null, null, null, null, null, null, null, 629, 998, 1582, 2509], "PLO": [null, null, null, null, null, null, null, null, 629, 701, 782, 872], "DECT": [null, -43.1, 15.9, -5.1, 98.5, -19.1, 55.4, 18.3, -30.8], "DECC": [null, 64.7, 9.1, 26.6, -31.0, 31.0, -26.6, 8.3, 24.7], "DECA": [null, 3.0, -10.2, -10.2, 2.4, 11.0, -3.2, 9.2, -3.0], "CONV": [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2], "REP": [8.3, 15.5, 13.0, 17.5, 11.6, 17.2, 21.0, 20.4, 27.8], "FITX": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"], "FITY": [9.7, 11.5, 13.3, 15.1, 16.9, 18.7, 20.5, 22.3, 24.1, 26.0, 27.8, 29.6], "CART": [3.3, 7.1, 7.2, 11.2, 6.4, 9.2, 8.7, 8.4, 9.5], "CHK": [3.5, 7.4, 7.3, 10.8, 5.7, 8.8, 8.0, 7.8, 8.1], "BUY": [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2], "AOV": [100, 103, 93, 84, 86, 96, 93, 102, 99], "DISC": [0.3, 0.6, 0.8, 3.2, 3.7, 3.7, 2.6, 2.5, 2.2], "RETS": [0.0, 2.1, 2.8, 0.2, 0.6, 0.4, 0.0, 0.2, 0.7], "SCAT": [{"x": 0.6, "y": 31.0, "m": "M2"}, {"x": 0.8, "y": 9.9, "m": "M3"}, {"x": 3.2, "y": 12.5, "m": "M4"}, {"x": 3.7, "y": 85.8, "m": "M5"}, {"x": 3.7, "y": 29.9, "m": "M6"}, {"x": 2.6, "y": 29.4, "m": "M7"}, {"x": 2.5, "y": 45.5, "m": "M8"}, {"x": 2.2, "y": -14.5, "m": "M9*"}], "SHARES": [10.1, 7.4, 6.8, 5.9, 5.5, 64.3], "SLAB": ["Product A", "Product B", "Product C", "Product D", "Product E", "All others"], "HEALTH": 90, "NFULL": 8};
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  e.target.classList.add('in');
+  e.target.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.w + '%');
+  if (e.target.classList.contains('meter')) e.target.querySelector('.meter-dot').style.left = e.target.querySelector('.meter-dot').dataset.left + '%';
+  io.unobserve(e.target);
+}), { threshold: 0.15 });
+function arm(root) {
+  root.querySelectorAll('.rv, .funnel, .meter').forEach(el => { if (reduced) { el.classList.add('in'); el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.w + '%'); const d = el.querySelector('.meter-dot'); if (d) d.style.left = d.dataset.left + '%'; } else io.observe(el); });
+}
+arm(document);
+document.querySelectorAll('.kpi .v[data-count]').forEach(el => {
+  const target = parseFloat(el.dataset.count); if (reduced || isNaN(target)) return;
+  const dec = (el.dataset.count.split('.')[1] || '').length; let t0 = null;
+  function tick(ts) { if (!t0) t0 = ts; const p = Math.min((ts - t0) / 900, 1);
+    el.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(dec);
+    if (p < 1) requestAnimationFrame(tick); }
+  requestAnimationFrame(tick);
+});
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    const panel = document.getElementById('panel-' + btn.dataset.tab);
+    panel.classList.add('active');
     Object.values(Chart.instances).forEach(c => c.resize());
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
 });
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#a4a5ab';
+Chart.defaults.animation.duration = reduced ? 0 : 900;
 const GRID = { color: '#f1f1ef' }, NOGRID = { display: false }, NOB = { display: false };
 const X = { ticks: { autoSkip: false }, grid: NOGRID, border: NOB };
 new Chart(document.getElementById('c7'), { type: 'doughnut',

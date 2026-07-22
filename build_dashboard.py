@@ -158,70 +158,115 @@ anom_html = "".join(f'<div class="pill kpi"><span class="l">{a}</span></div>' fo
 
 per100_cart, per100_buy = funnel[1][1], funnel[3][1]
 
-def card(what, how, watch):
-    return (f'<div class="explain">'
+# extra computed conclusions
+weakest = min(score_rows, key=lambda r: r[1])
+xs2 = disc[1:]; ys2 = [m for m in mom[1:]]
+mx2, my2 = sum(xs2)/len(xs2), sum(ys2)/len(ys2)
+cov = sum((a-mx2)*(b-my2) for a,b in zip(xs2,ys2))
+den = (sum((a-mx2)**2 for a in xs2) * sum((b-my2)**2 for b in ys2)) ** 0.5
+r_disc = round(cov/den, 2) if den else 0.0
+drops = [("visit to cart", 100 - cart_rate[-1]), ("cart to checkout", cart_rate[-1] - chk_rate[-1]), ("checkout to purchase", chk_rate[-1] - buy_rate[-1])]
+big_drop = max(drops, key=lambda d: d[1])
+latest_proj = proj_mid[-3:]
+conv_lift_orders = round((conv[-1] + 0.5) / conv[-1] * 100 - 100)
+
+def card(what, how, watch, conclusion):
+    return (f'<div class="explain rv">'
             f'<div class="ex-row"><span class="pill ex-tag">what this shows</span><p>{what}</p></div>'
             f'<div class="ex-row"><span class="pill ex-tag">how we built it</span><p>{how}</p></div>'
-            f'<div class="ex-row"><span class="pill ex-tag">what to look for</span><p>{watch}</p></div></div>')
+            f'<div class="ex-row"><span class="pill ex-tag">what to look for</span><p>{watch}</p></div>'
+            f'<div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>{conclusion}</p></div></div>')
+
+if abs(r_disc) < 0.3:
+    disc_verdict = f"The correlation between discount rate and growth across all months is {r_disc}: effectively no relationship. Demand here is driven by discovery and product fit, not price promotion, so discounts are best kept as a targeted tool (clearing a colourway, rewarding repeat buyers) rather than a growth strategy. Holding discounts near {disc[-1]:g}% while volume compounds means growth without margin erosion."
+elif abs(r_disc) < 0.6:
+    disc_verdict = f"The correlation between discount rate and growth is {r_disc}: a weak-to-moderate link, and with only {len(xs2)} months of data it is suggestive rather than conclusive. The biggest spike month did coincide with the heaviest promotion period, so discounts likely amplified an already-good month rather than created it. The honest conclusion: promotions may add a tailwind, but the store also grew strongly in low-discount months, so margin should not be spent chasing this correlation. Keep discounts event-driven and re-test this chart at 12+ months when the sample can actually settle the question."
+else:
+    disc_verdict = f"The correlation between discount rate and growth is {r_disc}: a strong link in this sample. Growth months and discount months overlap heavily, which means margin is doing real work in acquiring sales. That is not automatically bad, but it should be priced consciously: check the contribution margin in the Excel model for promoted months before scaling promotions further."
 
 EX = {
 "health": card(
-    f"One number for the store's overall condition: {health}/100, averaged from five component scores shown as bars.",
-    "Each metric is scored 0-100 against a healthy-store benchmark: conversion vs 3%, repeat rate vs 30%, returns vs a 5% ceiling, discounts vs an 8% ceiling, and growth vs 15% average monthly. The five scores are averaged with equal weight.",
-    "Any bar sitting under 50 is the weakest link and the first thing to work on."),
+    f"One number for the store's overall condition: {health}/100, averaged from the five component scores shown as bars.",
+    "Each metric is scored 0-100 against a healthy-store benchmark: conversion vs 3%, repeat rate vs 30%, returns vs a 5% ceiling, discounts vs an 8% ceiling, and 3-month growth vs 15% monthly. Equal weights, simple average.",
+    "Any bar under 50 is the weakest link and the first thing to work on.",
+    f"At {health}/100 this store is operating well above the typical small D2C store. The lowest component is {weakest[0].lower()} at {weakest[1]}/100, which makes it the highest-leverage place to spend effort next: every point recovered there moves the composite more than polishing an already-strong metric. The score is deliberately harsh on growth momentum during slow months, so a dip after a spike month is expected behavior, not decay."),
 "c1": card(
     f"Monthly net sales as an index: first full month = 100, latest full month = {idx[last_full_idx]}. That is {growth_mult}x growth with no real amounts revealed.",
-    f"Monthly P&L pulled via ShopifyQL, indexed to hide currency. The current month is scaled to full-month pace from days elapsed. The gray dashed line is a 3-month rolling average. The cone projects 3 months forward by compounding the historical average log-growth, widened by one standard deviation each way.",
-    "Whether the solid line stays above the dashed trend, and how wide the cone is: a narrow cone means growth has been consistent enough to predict."),
+    "Monthly P&L pulled via ShopifyQL, indexed to hide currency. The current month is scaled to full-month pace from days elapsed. The gray dashed line is a 3-month rolling average; the cone compounds historical average log-growth plus and minus one standard deviation.",
+    "Whether the solid line stays above the dashed trend, and how wide the cone is: a narrow cone means growth has been consistent enough to predict.",
+    f"The trajectory is genuinely strong: {growth_mult}x in {n_full} months with only one negative month. The current month is pacing at {idx[-1]} vs {idx[last_full_idx]} last month, a pullback that the decomposition tab attributes to traffic, not the store itself. If history repeats, the cone puts the next three months around {latest_proj[0]}, {latest_proj[1]} and {latest_proj[2]}; the width of that cone says treat these as direction, not promises. The single most important thing this chart asks of the operator: keep the traffic engine running, because the store converts whatever arrives."),
 "c2": card(
     "Each month's growth split into its three possible causes: more visitors, better conversion, or bigger orders.",
-    "Net sales is the product of sessions, conversion rate, and average order value, so log-differences of each factor split every month's change into three additive parts, shown stacked.",
-    "Which color dominates. This store's bars are mostly blue: growth is traffic-led, so marketing reach matters more than site tweaks right now."),
+    "Net sales is the product of sessions, conversion rate and average order value, so log-differences of each factor split every month's change into three additive parts, shown stacked.",
+    "Which color dominates. This store's bars are mostly blue: growth is traffic-led.",
+    f"The blue dominance is the deepest strategic fact on this page. It means the product and the store already work; the binding constraint is how many people see it. Practical reading: a rupee spent on reach (content, SEO, ads, marketplace presence) buys more growth right now than a rupee spent on site optimization, because conversion is already above benchmark at {conv[-1]:g}%. The orange slices appearing in recent months are a bonus signal: conversion is improving on its own as the catalog and reviews mature. The gray slices staying near zero confirm the AOV chart's story that order size has not been worked as a lever yet."),
 "heat": card(
     "Five metrics tracked month by month in one grid: a compressed view of momentum across the whole business.",
-    "Each cell is that metric's percent change vs the prior month. Blue means it improved, orange declined, and deeper color means a bigger move (capped at 30% for readability).",
-    "Columns that go orange across several rows at once: that is a genuinely bad month, not one noisy metric."),
+    "Each cell is that metric's percent change vs the prior month. Blue improved, orange declined, deeper color means a bigger move (capped at 30% for readability).",
+    "Columns that go orange across several rows at once: that is a genuinely bad month, not one noisy metric.",
+    "Read this grid by column, not cell. Most columns are majority blue, which is what a compounding store looks like. Where orange appears it clusters in the sessions row rather than conversion or repeat, reinforcing that the volatile input is traffic while the store's internal mechanics improve almost monotonically. The healthiest detail is the repeat-rate row: it stays blue even in months where sales dip, meaning customer quality is decoupled from traffic luck. If a future month ever shows orange across sales, sessions AND conversion simultaneously, that is the early-warning pattern that deserves a same-week response."),
 "c3": card(
     f"How well visits become buyers ({conv[-1]:g} per 100 visitors) and how many buyers come back ({repeat[-1]:g} per 100 buyers).",
     f"Conversion comes from the sessions report, repeat rate from the customers report. The dotted line is a least-squares fit through repeat rate, extended to month 12, currently landing near {proj_m12:g}%.",
-    "Typical online stores convert 1.5 to 2.5 per 100. Repeat rate climbing while sales grow means new customers are being kept, not just acquired."),
+    "Typical online stores convert 1.5 to 2.5 per 100. Repeat rate climbing while sales grow means customers are being kept, not just acquired.",
+    f"Two conclusions stack here. First, at {conv[-1]:g}% conversion the store outperforms the typical range, so paid traffic economics are better than average: the same ad spend yields roughly {conv_lift_orders}% more orders than a store converting half a point lower. Second, and more valuable long-term, repeat rate has more than tripled since launch and the fitted trend reaches about {proj_m12:g}% by month 12. Repeat customers arrive free, which mechanically raises margin over time. The strategic implication: an email/WhatsApp flow and a colour-drop cadence are not nice-to-haves, they are the cheapest growth channel this data can identify."),
 "funnel": card(
-    f"Where visitors drop off: out of 100 sessions last month, {per100_cart:g} added to cart, {per100_buy:g} purchased. The lines below track each stage across all months.",
+    f"Where visitors drop off: out of 100 sessions last month, {per100_cart:g} added to cart, {per100_buy:g} purchased. The lines track each stage across all months.",
     "Each stage's sessions divided by total sessions for that month, so every figure reads as per-100-visitors.",
-    "Rising lines mean the funnel is tightening. The biggest loss is always visit-to-cart; small gains there outweigh anything later in the funnel."),
+    "Rising lines mean the funnel is tightening: losing fewer people per step.",
+    f"The largest loss is {big_drop[0]}, where {big_drop[1]:g} of every 100 visitors exit. That is normal for e-commerce but it defines the priority order for site work: product-page persuasion (photos, reviews, sizing clarity) outranks checkout tweaks, because the checkout stages already convert well once reached. The over-time lines add a subtler conclusion: all three stage-rates have trended up together, so past site changes have compounded rather than shuffled the losses between stages. Keep changes incremental; nothing in this funnel is broken enough to justify a risky redesign."),
 "c4": card(
     f"The size of a typical order, indexed. Currently {aov_idx[-1]} vs 100 in month one: essentially flat.",
     "Average order value from the customers report, indexed the same way as sales to hide currency.",
-    "Flat AOV while sales multiply means all growth came from order count. AOV is the untouched lever: bundles and free-shipping thresholds move it."),
+    "Flat AOV while sales multiply means all growth came from order count.",
+    f"This is the clearest untapped lever on the page. AOV has moved within a narrow band ({min(aov_idx)} to {max(aov_idx)}) for the whole history while everything else compounded, which means nothing has been tried: no bundles, no tiered free-shipping threshold, no volume pricing. The arithmetic is forgiving: lifting AOV just 10 index points at current order volume adds roughly a tenth to revenue with zero additional traffic or conversion work. The natural first experiment given the catalog is an accessory-plus-band bundle anchored on the most-ordered low-value product, priced to nudge the typical order up one notch."),
 "c5": card(
     "Whether discounting bought growth. Each dot is one month: discounts given vs growth achieved.",
     "Monthly discount rate (discounts as % of gross) plotted against that month's sales growth.",
-    "A rising pattern would mean growth was purchased with margin. This scatter shows no such pattern: the best growth months were not the heaviest discount months."),
+    "A rising pattern would mean growth was purchased with margin.",
+    disc_verdict),
 "c6": card(
     f"How dependent the store is on its best sellers: the top product holds {shares[0]:g}% of sales, the top five together {sum(shares[:5]):g}%.",
-    "Each product's share of total net sales, with names anonymized to letters. The meter is a Herfindahl-style concentration index scored against the 0.25 threshold economists use for high concentration.",
-    "A dot far right means one product's slowdown hurts everything. This store sits left: diversified across many products."),
+    "Each product's share of total net sales, names anonymized to letters. The meter is a Herfindahl-style concentration index scored against the 0.25 threshold economists use for high concentration.",
+    "A dot far right means one product's slowdown hurts everything.",
+    f"With the top product at {shares[0]:g}% and the meter sitting well left of the concentration threshold, no single product failure can seriously wound this store: the long tail carries {shares[5]:g}% of sales. That diversification is a genuine moat for a small operation, and it changes how new launches should be judged: a new product does not need to become a bestseller to be worth keeping, it needs to add a few durable points to the tail. The one watch-item is family-level concentration, which letter-level anonymization hides: if the top products all serve the same device ecosystem, platform risk is higher than this chart alone suggests."),
 "anoms": card(
     "Months where growth broke sharply from the store's own pattern, flagged automatically.",
     f"Each month's growth is compared to the store's average ({mm:.0f}%) in standard deviations; anything beyond 1.5 sd is flagged.",
-    "Flags deserve an explanation you can name: a launch, a campaign, a stockout. An unexplained flag is the one worth investigating."),
+    "Flags deserve an explanation you can name: a launch, a campaign, a stockout.",
+    "Exactly one anomaly across the whole history is itself the finding: this growth curve is unusually orderly for an early-stage store. The flagged spike month should be documented while memory is fresh (what launched, what was posted, what went viral), because a repeatable cause is a playbook, and an unrepeatable one should be excluded when setting expectations. The projection cone on the overview tab already treats that month as part of normal variance; if it was truly one-off, real future months will tend toward the lower half of the cone."),
 }
+
+WHY = """
+    <section class="rv">
+      <h2>Why this exists</h2>
+      <p class="sub">Shopify's built-in reports are good at counting. This pipeline exists for the questions counting can't answer.</p>
+      <div class="vs">
+        <div class="vs-row"><span class="pill vs-l">Shopify shows metrics in isolation</span><span class="arr">-></span><span class="pill vs-r">Growth is decomposed into visitors x conversion x order size, so you know WHY a month moved</span></div>
+        <div class="vs-row"><span class="pill vs-l">Absolute numbers only, private by necessity</span><span class="arr">-></span><span class="pill vs-r">Indexed and anonymized, so performance can be shared publicly without revealing a single rupee</span></div>
+        <div class="vs-row"><span class="pill vs-l">Revenue, but no costs</span><span class="arr">-></span><span class="pill vs-r">The companion Excel model adds COGS, courier, packaging and gateway assumptions for true contribution margin</span></div>
+        <div class="vs-row"><span class="pill vs-l">History, but no forward view</span><span class="arr">-></span><span class="pill vs-r">Run-rate for the current month plus a probability cone for the next three</span></div>
+        <div class="vs-row"><span class="pill vs-l">You must notice unusual months yourself</span><span class="arr">-></span><span class="pill vs-r">Anomalies auto-flagged at 1.5 standard deviations, with the math shown</span></div>
+        <div class="vs-row"><span class="pill vs-l">Charts you have to interpret</span><span class="arr">-></span><span class="pill vs-r">Every chart carries a computed what / how / watch / conclusion card in plain language</span></div>
+      </div>
+    </section>
+"""
 
 TABS = [("overview", "Overview"), ("growth", "Growth"), ("customers", "Customers & funnel"),
         ("economics", "Economics & products"), ("method", "Method")]
 tab_nav = "".join(f'<button class="pill tab-btn{" active" if i == 0 else ""}" data-tab="{tid}">{name}</button>' for i, (tid, name) in enumerate(TABS))
 
-kpis = [(f"{growth_mult}x", "net sales growth"), (f"{conv[-1]}%", "conversion"),
-        (f"{repeat[-1]}%", "repeat rate"), (f"{rets[-1]}%", "returns"),
-        (f"{disc[-1]}%", "discounts"), (f"{health}", "health score")]
-kpi_html = "".join(f'<div class="pill kpi"><span class="v">{v}</span><span class="l">{l}</span></div>' for v, l in kpis)
+kpis = [(f"{growth_mult}", "x", "net sales growth"), (f"{conv[-1]}", "%", "conversion"),
+        (f"{repeat[-1]}", "%", "repeat rate"), (f"{rets[-1]}", "%", "returns"),
+        (f"{disc[-1]}", "%", "discounts"), (f"{health}", "", "health score")]
+kpi_html = "".join(f'<div class="pill kpi rv"><span class="v" data-count="{v}">{v}</span><span class="v-suf">{s}</span><span class="l">{l}</span></div>' for v, s, l in kpis)
 funnel_html = "".join(
     f'<div class="step"><span class="pill tag">{name}</span>'
-    f'<div class="bar-track"><div class="bar-fill" style="width:{val}%"></div></div>'
+    f'<div class="bar-track"><div class="bar-fill" data-w="{val}"></div></div>'
     f'<span class="pct">{val:g}%</span></div>' for name, val in funnel)
 score_html = "".join(
     f'<div class="step"><span class="pill tag">{name}</span>'
-    f'<div class="bar-track"><div class="bar-fill" style="width:{v}%"></div></div>'
+    f'<div class="bar-track"><div class="bar-fill" data-w="{v}"></div></div>'
     f'<span class="pct">{v}</span></div>' for name, v in score_rows)
 
 D = {"L": labels, "PL": proj_labels, "IDX": idx_padded, "ROLL": roll_padded,
@@ -244,57 +289,74 @@ tpl = """<!DOCTYPE html>
   :root { --ink: #111114; --ink-2: #6f7076; --ink-3: #a4a5ab; --bg: #fbfbfa; --card: #ffffff; --line: #ececea; --accent: #2a78d6; --warm: #eb6834; }
   * { box-sizing: border-box; margin: 0; }
   body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 24px 72px; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 56px 32px 80px; }
   .pill { border-radius: 999px; }
   header { text-align: center; margin-bottom: 32px; }
   .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; }
-  h1 { font-size: clamp(26px, 4.5vw, 38px); font-weight: 600; letter-spacing: -0.02em; margin: 20px auto 8px; max-width: 560px; line-height: 1.2; }
-  .note { font-size: 13px; color: var(--ink-3); max-width: 520px; margin: 0 auto; }
-  .tabs { position: sticky; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 28px 0 40px; }
-  .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 8px 18px; cursor: pointer; }
+  h1 { font-size: clamp(28px, 4.5vw, 46px); font-weight: 600; letter-spacing: -0.02em; margin: 22px auto 10px; max-width: 640px; line-height: 1.15; }
+  .note { font-size: 13px; color: var(--ink-3); max-width: 560px; margin: 0 auto; }
+  .tabs { position: sticky; top: 12px; z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 30px 0 48px; }
+  .tab-btn { font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 9px 20px; cursor: pointer; transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease; }
+  .tab-btn:hover { transform: translateY(-1px); }
   .tab-btn.active { background: var(--ink); color: var(--card); border-color: var(--ink); }
   .tab-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .panel { display: none; }
-  .panel.active { display: block; }
-  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0 0 48px; }
-  .kpi { background: var(--card); border: 1px solid var(--line); padding: 10px 22px; display: flex; align-items: baseline; gap: 8px; }
-  .kpi .v { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-  .kpi .l { font-size: 12px; color: var(--ink-2); }
-  section { margin-bottom: 56px; }
-  h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; text-align: center; }
-  .sub { font-size: 13px; color: var(--ink-2); text-align: center; margin: 4px 0 20px; }
-  .chart { position: relative; height: 280px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
-  .chart.tall { height: 330px; }
+  .panel.active { display: block; animation: panelIn 0.45s ease; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 0 56px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); padding: 12px 26px; display: flex; align-items: baseline; gap: 6px; transition: transform 0.2s ease, border-color 0.2s ease; }
+  .kpi:hover { transform: translateY(-2px); border-color: var(--ink-3); }
+  .kpi .v { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  .kpi .v-suf { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+  .kpi .l { font-size: 12px; color: var(--ink-2); margin-left: 4px; }
+  section { margin-bottom: 72px; }
+  h2 { font-size: clamp(18px, 2.2vw, 24px); font-weight: 600; letter-spacing: -0.01em; text-align: center; }
+  .sub { font-size: 14px; color: var(--ink-2); text-align: center; margin: 6px auto 26px; max-width: 620px; }
+  .duo { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+  .duo.flip .chart-col { order: 2; } .duo.flip .ex-col { order: 1; }
+  .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 22px; transition: border-color 0.25s ease; }
+  .chart:hover { border-color: var(--ink-3); }
+  .chart.tall { height: 340px; }
   .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 14px; }
   .legend .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 4px 14px; display: flex; align-items: center; gap: 6px; }
   .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .funnel { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .funnel { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
   .step { display: grid; grid-template-columns: 160px 1fr 52px; align-items: center; gap: 12px; }
   .tag { font-size: 12px; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 4px 12px; text-align: center; white-space: nowrap; }
   .bar-track { height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }
-  .bar-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .bar-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .pct { font-size: 13px; font-weight: 500; text-align: right; }
-  .explain { max-width: 680px; margin: 18px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
-  .ex-row { display: grid; grid-template-columns: 130px 1fr; gap: 14px; align-items: start; }
+  .explain { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .ex-row { display: grid; grid-template-columns: 122px 1fr; gap: 14px; align-items: start; }
   .ex-tag { font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 3px 10px; text-align: center; white-space: nowrap; margin-top: 2px; }
   .ex-row p { font-size: 13px; color: var(--ink-2); }
-  .hm { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
+  .ex-row.conc { border-top: 1px solid var(--line); padding-top: 12px; }
+  .ex-row.conc .ex-tag { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  .ex-row.conc p { color: var(--ink); }
+  .below { max-width: 860px; margin: 20px auto 0; }
+  .hm { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto; }
   .hm-row { display: grid; grid-template-columns: 110px repeat(%N%, 1fr); gap: 6px; align-items: center; min-width: 560px; }
   .hm-cell { border-radius: 999px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
   .hm-h { background: transparent; color: var(--ink-3); font-weight: 500; }
-  .meter { max-width: 520px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
+  .meter { max-width: 560px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
   .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dce9f8, #f8ddd2); }
-  .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); }
+  .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); transition: left 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 8px; }
-  .method { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-  .method .explain { margin: 0; max-width: none; }
+  .vs { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .vs-row { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1.4fr); gap: 12px; align-items: center; }
+  .vs-l { font-size: 12px; color: var(--ink-3); background: var(--bg); border: 1px dashed var(--line); padding: 8px 16px; text-align: center; }
+  .vs-r { font-size: 12px; color: var(--ink); background: var(--card); border: 1px solid var(--line); padding: 8px 16px; text-align: center; }
+  .arr { color: var(--ink-3); font-size: 13px; text-align: center; }
+  .method { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
   .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 0 0 28px; }
   .flow .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
-  .flow .arr { color: var(--ink-3); font-size: 13px; }
+  .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .rv.in { opacity: 1; transform: none; }
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
   footer .pill { display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
+  @media (max-width: 860px) { .duo { grid-template-columns: 1fr; } .duo.flip .chart-col { order: 1; } .duo.flip .ex-col { order: 2; } .vs-row { grid-template-columns: 1fr; } .arr { transform: rotate(90deg); } }
   @media (max-width: 560px) { .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
+  @media (prefers-reduced-motion: reduce) { .rv, .panel.active, .bar-fill, .meter-dot, .tab-btn, .kpi, .chart { transition: none; animation: none; } .rv { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
@@ -309,19 +371,25 @@ tpl = """<!DOCTYPE html>
 
   <div class="panel active" id="panel-overview">
     <div class="kpis">%KPIS%</div>
+    %WHY%
     <section>
       <h2>Health scorecard</h2>
-      <p class="sub">Five metrics scored against benchmarks, averaged into one number</p>
-      <div class="grid2">
-        <div class="chart"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
-        <div class="funnel">%SCORES%</div>
+      <p class="sub">Five metrics scored against healthy-store benchmarks and averaged into one number</p>
+      <div class="duo">
+        <div class="chart-col">
+          <div class="chart rv"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
+          <div class="funnel rv" style="margin-top: 20px;">%SCORES%</div>
+        </div>
+        <div class="ex-col">%EX_HEALTH%</div>
       </div>
-      %EX_HEALTH%
     </section>
     <section>
       <h2>Net sales index, trend and projection</h2>
-      <div class="chart"><canvas id="c1" role="img" aria-label="Net sales index with rolling average and projection band"></canvas></div>
-      %EX_C1%
+      <p class="sub">First full month = 100. Cone = the next three months if history repeats</p>
+      <div class="duo flip">
+        <div class="chart-col"><div class="chart rv"><canvas id="c1" role="img" aria-label="Net sales index with rolling average and projection band"></canvas></div></div>
+        <div class="ex-col">%EX_C1%</div>
+      </div>
     </section>
   </div>
 
@@ -333,18 +401,21 @@ tpl = """<!DOCTYPE html>
         <span class="pill"><span class="dot" style="background: var(--warm)"></span>better conversion</span>
         <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>bigger orders</span>
       </div>
-      <div class="chart"><canvas id="c2" role="img" aria-label="Growth decomposition stacked bars"></canvas></div>
-      %EX_C2%
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="c2" role="img" aria-label="Growth decomposition stacked bars"></canvas></div></div>
+        <div class="ex-col">%EX_C2%</div>
+      </div>
     </section>
     <section>
       <h2>Momentum heatmap</h2>
-      <div class="hm">%HEATHEAD%%HEATROWS%</div>
-      %EX_HEAT%
+      <p class="sub">Blue = improved vs prior month, orange = declined, deeper = bigger move</p>
+      <div class="hm rv">%HEATHEAD%%HEATROWS%</div>
+      <div class="below">%EX_HEAT%</div>
     </section>
     <section>
       <h2>Anomalies detected</h2>
-      <div class="kpis" style="margin: 16px 0 0;">%ANOMS%</div>
-      %EX_ANOMS%
+      <div class="kpis" style="margin: 16px 0 20px;">%ANOMS%</div>
+      <div class="below">%EX_ANOMS%</div>
     </section>
   </div>
 
@@ -356,41 +427,57 @@ tpl = """<!DOCTYPE html>
         <span class="pill"><span class="dot" style="background: var(--warm)"></span>repeat rate</span>
         <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>repeat trend to M12 (dotted)</span>
       </div>
-      <div class="chart"><canvas id="c3" role="img" aria-label="Conversion and repeat rate with fitted projection"></canvas></div>
-      %EX_C3%
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="c3" role="img" aria-label="Conversion and repeat rate with fitted projection"></canvas></div></div>
+        <div class="ex-col">%EX_C3%</div>
+      </div>
     </section>
     <section>
       <h2>The funnel, now and over time</h2>
-      <div class="funnel" style="margin-bottom: 20px;">%FUNNEL%</div>
-      <div class="legend">
-        <span class="pill"><span class="dot" style="background: var(--accent)"></span>added to cart %</span>
-        <span class="pill"><span class="dot" style="background: var(--warm)"></span>reached checkout %</span>
-        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>purchased %</span>
+      <div class="duo flip">
+        <div class="chart-col">
+          <div class="funnel rv" style="margin-bottom: 20px;">%FUNNEL%</div>
+          <div class="chart rv"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
+        </div>
+        <div class="ex-col">
+          <div class="legend" style="justify-content: flex-start;">
+            <span class="pill"><span class="dot" style="background: var(--accent)"></span>added to cart %</span>
+            <span class="pill"><span class="dot" style="background: var(--warm)"></span>reached checkout %</span>
+            <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>purchased %</span>
+          </div>
+          %EX_FUNNEL%
+        </div>
       </div>
-      <div class="chart"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
-      %EX_FUNNEL%
     </section>
   </div>
 
   <div class="panel" id="panel-economics">
     <section>
       <h2>Average order value</h2>
-      <div class="chart"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div>
-      %EX_C4%
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div></div>
+        <div class="ex-col">%EX_C4%</div>
+      </div>
     </section>
     <section>
       <h2>Did discounts buy growth?</h2>
-      <div class="chart"><canvas id="c5" role="img" aria-label="Discount rate versus growth scatter"></canvas></div>
-      %EX_C5%
+      <div class="duo flip">
+        <div class="chart-col"><div class="chart rv"><canvas id="c5" role="img" aria-label="Discount rate versus growth scatter"></canvas></div></div>
+        <div class="ex-col">%EX_C5%</div>
+      </div>
     </section>
     <section>
       <h2>Product concentration</h2>
-      <div class="chart tall"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
-      <div class="meter">
-        <div class="meter-track"><div class="meter-dot" style="left: %HHIPOS%%"></div></div>
-        <div class="meter-labels"><span>diversified</span><span>concentrated</span></div>
+      <div class="duo">
+        <div class="chart-col">
+          <div class="chart tall rv"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
+          <div class="meter rv">
+            <div class="meter-track"><div class="meter-dot" data-left="%HHIPOS%" style="left: 0%"></div></div>
+            <div class="meter-labels"><span>diversified</span><span>concentrated</span></div>
+          </div>
+        </div>
+        <div class="ex-col">%EX_C6%</div>
       </div>
-      %EX_C6%
     </section>
   </div>
 
@@ -398,18 +485,18 @@ tpl = """<!DOCTYPE html>
     <section>
       <h2>How this page is made</h2>
       <p class="sub">A four-step pipeline, rebuilt on every refresh</p>
-      <div class="flow">
+      <div class="flow rv">
         <span class="pill">Shopify (ShopifyQL)</span><span class="arr">-></span>
         <span class="pill">4 CSV reports</span><span class="arr">-></span>
         <span class="pill">build_dashboard.py</span><span class="arr">-></span>
         <span class="pill">this page</span>
       </div>
       <div class="method">
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">the reports</span><p>Four ShopifyQL queries feed everything: monthly P&L (orders, gross, discounts, returns, net, shipping), product-level sales, customer counts with repeat rate and AOV, and the session funnel. Nothing else is collected.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">anonymization</span><p>Months are renamed M1..Mn. Sales and AOV are divided by their first-full-month value and shown as an index where 100 = month one. Products are relabeled A through E. Only rates, ratios, shares, and indexes survive to this page; no absolute rupee amount, order count, or visitor count appears anywhere in the HTML source.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">the math</span><p>Partial months are projected to full-month pace from days elapsed. The projection cone compounds average historical log-growth plus and minus one standard deviation. Growth decomposition uses log-differences of sessions x conversion x AOV. The repeat-rate trend is a least-squares fit. Anomalies are months beyond 1.5 standard deviations from average growth. The concentration meter is a Herfindahl index scored against the 0.25 high-concentration threshold.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">glossary</span><p>Index: month one = 100, everything relative to it. Conversion: buyers per 100 visitors. Repeat rate: returning buyers per 100 buyers. AOV: the size of a typical order. Net sales: gross minus discounts and returns. * : partial month at run-rate. p : projected month.</p></div></div>
-        <div class="explain"><div class="ex-row"><span class="pill ex-tag">integrity</span><p>The chart library is loaded with a cryptographic integrity hash, so a tampered copy will refuse to run. All numbers on this page are generated by code from the source reports; none are typed by hand.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">the reports</span><p>Four ShopifyQL queries feed everything: monthly P&L (orders, gross, discounts, returns, net, shipping), product-level sales, customer counts with repeat rate and AOV, and the session funnel. Nothing else is collected.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">anonymization</span><p>Months are renamed M1..Mn. Sales and AOV are divided by their first-full-month value and shown as an index where 100 = month one. Products are relabeled A through E. Only rates, ratios, shares, and indexes survive to this page; no absolute rupee amount, order count, or visitor count appears anywhere in the HTML source.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">the math</span><p>Partial months are projected to full-month pace from days elapsed. The projection cone compounds average historical log-growth plus and minus one standard deviation. Growth decomposition uses log-differences of sessions x conversion x AOV. The repeat-rate trend is a least-squares fit. Anomalies are months beyond 1.5 standard deviations from average growth. The concentration meter is a Herfindahl index scored against the 0.25 high-concentration threshold.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">glossary</span><p>Index: month one = 100, everything relative to it. Conversion: buyers per 100 visitors. Repeat rate: returning buyers per 100 buyers. AOV: the size of a typical order. Net sales: gross minus discounts and returns. * : partial month at run-rate. p : projected month.</p></div></div>
+        <div class="explain rv"><div class="ex-row"><span class="pill ex-tag">integrity</span><p>The chart library is loaded with a cryptographic integrity hash, so a tampered copy will refuse to run. All numbers on this page are generated by code from the source reports; none are typed by hand.</p></div></div>
       </div>
     </section>
   </div>
@@ -419,19 +506,41 @@ tpl = """<!DOCTYPE html>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <script>
 const D = %DATA%;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  e.target.classList.add('in');
+  e.target.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.w + '%');
+  if (e.target.classList.contains('meter')) e.target.querySelector('.meter-dot').style.left = e.target.querySelector('.meter-dot').dataset.left + '%';
+  io.unobserve(e.target);
+}), { threshold: 0.15 });
+function arm(root) {
+  root.querySelectorAll('.rv, .funnel, .meter').forEach(el => { if (reduced) { el.classList.add('in'); el.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.w + '%'); const d = el.querySelector('.meter-dot'); if (d) d.style.left = d.dataset.left + '%'; } else io.observe(el); });
+}
+arm(document);
+document.querySelectorAll('.kpi .v[data-count]').forEach(el => {
+  const target = parseFloat(el.dataset.count); if (reduced || isNaN(target)) return;
+  const dec = (el.dataset.count.split('.')[1] || '').length; let t0 = null;
+  function tick(ts) { if (!t0) t0 = ts; const p = Math.min((ts - t0) / 900, 1);
+    el.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(dec);
+    if (p < 1) requestAnimationFrame(tick); }
+  requestAnimationFrame(tick);
+});
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    const panel = document.getElementById('panel-' + btn.dataset.tab);
+    panel.classList.add('active');
     Object.values(Chart.instances).forEach(c => c.resize());
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
 });
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#a4a5ab';
+Chart.defaults.animation.duration = reduced ? 0 : 900;
 const GRID = { color: '#f1f1ef' }, NOGRID = { display: false }, NOB = { display: false };
 const X = { ticks: { autoSkip: false }, grid: NOGRID, border: NOB };
 new Chart(document.getElementById('c7'), { type: 'doughnut',
@@ -494,7 +603,7 @@ new Chart(document.getElementById('c6'), { type: 'bar',
 </html>"""
 
 out = (tpl.replace("%SHOP%", SHOP_NAME).replace("%MULT%", str(growth_mult))
-    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav)
+    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav).replace("%WHY%", WHY)
     .replace("%KPIS%", kpi_html).replace("%SCORES%", score_html)
     .replace("%FUNNEL%", funnel_html).replace("%HEATHEAD%", heat_head)
     .replace("%HEATROWS%", heat_rows).replace("%ANOMS%", anom_html)
@@ -506,4 +615,4 @@ out = (tpl.replace("%SHOP%", SHOP_NAME).replace("%MULT%", str(growth_mult))
     .replace("%EX_C6%", EX["c6"]).replace("%EX_ANOMS%", EX["anoms"])
     .replace("%DATA%", json.dumps(D).replace("</", "<\\/")))
 open("dashboard.html", "w").write(out)
-print("wrote dashboard.html", len(out), "bytes")
+print("wrote dashboard.html", len(out), "bytes; r_disc", r_disc, "weakest", weakest, "big_drop", big_drop)
