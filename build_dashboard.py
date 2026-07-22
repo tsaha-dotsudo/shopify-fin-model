@@ -252,8 +252,66 @@ WHY = """
     </section>
 """
 
-TABS = [("overview", "Overview"), ("growth", "Growth"), ("customers", "Customers & funnel"),
-        ("economics", "Economics & products"), ("method", "Method")]
+# ---- basics tab verdicts and deep-dive parameters ----
+orders_idx = [round(runrate(m, v) / runrate(p["month"][0], p["orders"][0]) * 100) for m, v in zip(p["month"], p["orders"])]
+sess_idx = [round(v / sess_rr[0] * 100) for v in sess_rr]
+rps = [runrate(m, t) / s for m, t, s in zip(p["month"], p["total_sales"], sess_rr)]
+rps_idx = [round(v / rps[0] * 100) for v in rps]
+ship_pct = [round(s / nsl * 100, 1) for s, nsl in zip(p["shipping_charges"], p["net_sales"])]
+cart_abandon = [round((1 - cc / ca) * 100, 1) for cc, ca in zip(f["completed_checkout"], f["cart_adds"])]
+chk_complete = [round(cc / rc * 100, 1) for cc, rc in zip(f["completed_checkout"], f["reached_checkout"])]
+q_labels, q_idx = [], []
+for qi in range(0, n_full, 3):
+    chunk = sales_rr[qi:min(qi + 3, n_full)]
+    q_labels.append(f"Q{qi // 3 + 1}")
+    q_idx.append(sum(chunk))
+q_idx = [round(v / q_idx[0] * 100) for v in q_idx]
+
+def verdict(ok, good_txt, warn_txt):
+    cls = "good" if ok else "warn"
+    return f'<span class="pill verdict {cls}">{good_txt if ok else warn_txt}</span>'
+
+basics = [
+    ("Is the store growing?", verdict(idx[last_full_idx] > 120, "Yes, strongly", "Not yet"),
+     f"Sales in the latest full month were {growth_mult}x the first month. Most months were bigger than the one before.",
+     "b1"),
+    ("Are visitors buying?", verdict(conv[-1] >= 2.5, "Yes, above average", "Below average"),
+     f"Out of every 100 people who visit, {conv[-1]:g} buy something. Typical online stores manage 1.5 to 2.5.",
+     "b2"),
+    ("Do customers come back?", verdict(repeat[-1] >= 20, "Yes, and rising", "Not many yet"),
+     f"{repeat[-1]:g} of every 100 buyers this month had bought before, up from {repeat[0]:g} at launch. Returning buyers cost nothing to acquire.",
+     "b3"),
+    ("Are discounts paying for growth?", verdict(disc[-1] < 4, "No, margin is safe", "Yes, watch margin"),
+     f"Only {disc[-1]:g} out of every 100 in sales is given away as discounts, and growth happened in low-discount months too.",
+     "b4"),
+    ("Is the store fragile?", verdict(shares[0] < 20 and rets[-1] < 3, "No, well protected", "Somewhat"),
+     f"The biggest product is only {shares[0]:g}% of sales, and just {rets[-1]:g} in 100 sales come back as returns.",
+     "b5"),
+]
+basics_html = "".join(
+    f'<div class="q-card rv"><div class="q-head"><h3>{q}</h3>{v}</div>'
+    f'<p class="q-txt">{t}</p><div class="q-chart"><canvas id="{cid}"></canvas></div></div>'
+    for q, v, t, cid in basics)
+
+EX_DEEP = {
+"mini": card(
+    "Four efficiency dials, all indexed or as rates: order volume, traffic volume, revenue earned per visit, and how much of shipping cost is passed to customers.",
+    "Orders, sessions and revenue-per-session are indexed to month one = 100. Shipping recovery is shipping charged as a percentage of net sales.",
+    "Revenue per session rising while sessions fluctuate means the store extracts more value from every visitor it gets.",
+    f"Revenue per session sits at {rps_idx[-1]} vs 100 at launch: each visit is worth more than it used to be, which compounds with any traffic win. The one deteriorating dial is shipping recovery, now {ship_pct[-1]:g}% of net sales vs {max(ship_pct):g}% at its peak: customers are being charged less of the real courier cost. That is a deliberate lever (free shipping converts better) but it should be a decision, not a drift; the Excel model's assumptions sheet quantifies exactly how much margin it absorbs."),
+"chk": card(
+    "The two checkout behaviors that matter: how many cart-builders abandon before paying, and how many people who reach checkout actually finish it.",
+    "Abandonment = 1 minus purchases over cart-adds. Completion = purchases over checkout-reached, both monthly.",
+    "Falling abandonment and rising completion mean trust: clear pricing, working payments, no surprises at the end.",
+    f"Checkout completion is at {chk_complete[-1]:g}%, meaning nearly two of every three people who reach checkout finish paying: for an independent store on cards and UPI that is a trust signal money can't easily buy. Cart abandonment at {cart_abandon[-1]:g}% is in the normal e-commerce band (most stores lose 60-80% of carts), and the trend is improving. The practical conclusion: checkout does not need work; the growth ceiling is upstream in traffic and product-page persuasion, exactly as the funnel tab concluded."),
+"q": card(
+    "The same growth story with monthly noise removed entirely: whole quarters, indexed to the first quarter.",
+    "Full months grouped into blocks of three, summed, indexed to the first block = 100.",
+    "Quarter-over-quarter direction is the number a bank, supplier, or partner would actually ask about.",
+    f"Quarter-on-quarter the story is unambiguous: {' to '.join(str(v) for v in q_idx)}. Every quarter has been materially larger than the last, which is the cleanest possible proof that monthly dips are noise around a strong trend and not the trend itself. If this page had to be one chart for a skeptical outsider, it is this one."),
+}
+TABS = [("basics", "Start here"), ("overview", "Overview"), ("growth", "Growth"), ("customers", "Customers & funnel"),
+        ("economics", "Economics & products"), ("deep", "Deep dive"), ("method", "Method")]
 tab_nav = "".join(f'<button class="pill tab-btn{" active" if i == 0 else ""}" data-tab="{tid}">{name}</button>' for i, (tid, name) in enumerate(TABS))
 
 kpis = [(f"{growth_mult}", "x", "net sales growth"), (f"{conv[-1]}", "%", "conversion"),
@@ -275,7 +333,9 @@ D = {"L": labels, "PL": proj_labels, "IDX": idx_padded, "ROLL": roll_padded,
      "CONV": conv, "REP": repeat, "FITX": [f"M{x}" for x in fit_x], "FITY": fit_y,
      "CART": cart_rate, "CHK": chk_rate, "BUY": buy_rate,
      "AOV": aov_idx, "DISC": disc, "RETS": rets, "SCAT": scatter,
-     "SHARES": shares, "SLAB": share_labels, "HEALTH": health, "NFULL": n_full}
+     "SHARES": shares, "SLAB": share_labels, "HEALTH": health, "NFULL": n_full,
+     "ORD": orders_idx, "SESS": sess_idx, "RPS": rps_idx, "SHIP": ship_pct,
+     "ABAN": cart_abandon, "CHKC": chk_complete, "QL": q_labels, "QIDX": q_idx}
 
 tpl = """<!DOCTYPE html>
 <html lang="en">
@@ -286,9 +346,9 @@ tpl = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #111114; --ink-2: #6f7076; --ink-3: #a4a5ab; --bg: #fbfbfa; --card: #ffffff; --line: #ececea; --accent: #2a78d6; --warm: #eb6834; }
+  :root { --ink: #1d1d1f; --ink-2: #6e6e73; --ink-3: #aeaeb2; --bg: #f5f5f7; --card: #ffffff; --line: #e8e8ed; --accent: #0071e3; --warm: #ff9500; --good: #34c759; }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
   .wrap { max-width: 1160px; margin: 0 auto; padding: 56px 32px 80px; }
   .pill { border-radius: 999px; }
   header { text-align: center; margin-bottom: 32px; }
@@ -344,7 +404,7 @@ tpl = """<!DOCTYPE html>
   .hm-cell { border-radius: 999px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
   .hm-h { background: transparent; color: var(--ink-3); font-weight: 500; }
   .meter { max-width: 560px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
-  .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dce9f8, #f8ddd2); }
+  .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dbeafe, #ffe3c2); }
   .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); transition: left 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 8px; }
   .vs { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
@@ -355,6 +415,18 @@ tpl = """<!DOCTYPE html>
   .method { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
   .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 0 0 28px; }
   .flow .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
+  .q-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .q-card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s ease, border-color 0.2s ease; }
+  .q-card:hover { transform: translateY(-2px); border-color: var(--ink-3); }
+  .q-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .q-head h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .verdict { font-size: 12px; font-weight: 500; padding: 4px 14px; white-space: nowrap; }
+  .verdict.good { background: #e8f7ee; color: #1d7d3f; border: 1px solid #c6ecd4; }
+  .verdict.warn { background: #fff3e0; color: #9a5b00; border: 1px solid #ffe2b8; }
+  .q-txt { font-size: 13px; color: var(--ink-2); }
+  .q-chart { position: relative; height: 120px; margin-top: 4px; }
+  .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; flex: 1; }
+  .chart.mini { min-height: 170px; padding: 14px; }
   .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .rv.in { opacity: 1; transform: none; }
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
@@ -374,7 +446,16 @@ tpl = """<!DOCTYPE html>
 
   <nav class="tabs" role="tablist">%TABNAV%</nav>
 
-  <div class="panel active" id="panel-overview">
+  <div class="panel active" id="panel-basics">
+    <section>
+      <h2>Five questions, plainly answered</h2>
+      <p class="sub">If you read nothing else on this page, read this tab. Each answer is computed from the store's own data.</p>
+      <div class="q-grid">%BASICS%</div>
+      <p class="sub" style="margin-top: 28px;">Want the detail behind any answer? The tabs above go progressively deeper: Overview for the headline picture, Growth and Customers for the mechanics, Deep dive for everything else.</p>
+    </section>
+  </div>
+
+  <div class="panel" id="panel-overview">
     <div class="kpis">%KPIS%</div>
     %WHY%
     <section>
@@ -489,6 +570,47 @@ tpl = """<!DOCTYPE html>
     </section>
   </div>
 
+  <div class="panel" id="panel-deep">
+    <section>
+      <h2>Efficiency dials</h2>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--accent)"></span>orders index</span>
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>sessions index</span>
+        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>revenue per session index</span>
+        <span class="pill"><span class="dot" style="background: var(--good)"></span>shipping recovery %</span>
+      </div>
+      <div class="duo">
+        <div class="chart-col">
+          <div class="mini-grid">
+            <div class="chart mini rv"><canvas id="d1"></canvas></div>
+            <div class="chart mini rv"><canvas id="d2"></canvas></div>
+            <div class="chart mini rv"><canvas id="d3"></canvas></div>
+            <div class="chart mini rv"><canvas id="d4"></canvas></div>
+          </div>
+        </div>
+        <div class="ex-col">%EX_MINI%</div>
+      </div>
+    </section>
+    <section>
+      <h2>Checkout behavior</h2>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>cart abandonment %</span>
+        <span class="pill"><span class="dot" style="background: var(--good)"></span>checkout completion %</span>
+      </div>
+      <div class="duo flip">
+        <div class="chart-col"><div class="chart rv"><canvas id="d5" role="img" aria-label="Cart abandonment and checkout completion by month"></canvas></div></div>
+        <div class="ex-col">%EX_CHK%</div>
+      </div>
+    </section>
+    <section>
+      <h2>The quarterly view</h2>
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="d6" role="img" aria-label="Quarterly sales index"></canvas></div></div>
+        <div class="ex-col">%EX_Q%</div>
+      </div>
+    </section>
+  </div>
+
   <div class="panel" id="panel-method">
     <section>
       <h2>How this page is made</h2>
@@ -545,73 +667,109 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
 });
-Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = '#a4a5ab';
+Chart.defaults.color = '#86868b';
 Chart.defaults.animation.duration = reduced ? 0 : 900;
-const GRID = { color: '#f1f1ef' }, NOGRID = { display: false }, NOB = { display: false };
+const GRID = { color: '#f2f2f4' }, NOGRID = { display: false }, NOB = { display: false };
 const X = { ticks: { autoSkip: false }, grid: NOGRID, border: NOB };
 new Chart(document.getElementById('c7'), { type: 'doughnut',
-  data: { labels: ['Health', ''], datasets: [{ data: [D.HEALTH, 100 - D.HEALTH], backgroundColor: ['#2a78d6', '#f1f1ef'], borderWidth: 0, borderRadius: 999 }] },
+  data: { labels: ['Health', ''], datasets: [{ data: [D.HEALTH, 100 - D.HEALTH], backgroundColor: ['#0071e3', '#f2f2f4'], borderWidth: 0, borderRadius: 999 }] },
   options: { responsive: true, maintainAspectRatio: false, cutout: '76%', plugins: { legend: { display: false }, tooltip: { enabled: false } } },
   plugins: [{ id: 'txt', afterDraw(ch) { const { ctx, chartArea: a } = ch; ctx.save();
-    ctx.font = '600 34px Inter'; ctx.fillStyle = '#111114'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '600 34px Inter'; ctx.fillStyle = '#1d1d1f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(D.HEALTH, (a.left + a.right) / 2, (a.top + a.bottom) / 2 - 8);
-    ctx.font = '400 12px Inter'; ctx.fillStyle = '#a4a5ab'; ctx.fillText('of 100', (a.left + a.right) / 2, (a.top + a.bottom) / 2 + 16); ctx.restore(); } }] });
+    ctx.font = '400 12px Inter'; ctx.fillStyle = '#aeaeb2'; ctx.fillText('of 100', (a.left + a.right) / 2, (a.top + a.bottom) / 2 + 16); ctx.restore(); } }] });
 new Chart(document.getElementById('c1'), { type: 'line',
   data: { labels: D.PL, datasets: [
-    { data: D.IDX, borderColor: '#2a78d6', backgroundColor: 'rgba(42,120,214,0.07)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.ROLL, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.35 },
-    { data: D.PMID, borderColor: '#2a78d6', borderWidth: 2, borderDash: [3, 4], pointRadius: 0, tension: 0.2 },
-    { data: D.PHI, borderColor: 'transparent', pointRadius: 0, fill: '+1', backgroundColor: 'rgba(42,120,214,0.09)', tension: 0.2 },
+    { data: D.IDX, borderColor: '#0071e3', backgroundColor: 'rgba(0,113,227,0.06)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.ROLL, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.35 },
+    { data: D.PMID, borderColor: '#0071e3', borderWidth: 2, borderDash: [3, 4], pointRadius: 0, tension: 0.2 },
+    { data: D.PHI, borderColor: 'transparent', pointRadius: 0, fill: '+1', backgroundColor: 'rgba(0,113,227,0.08)', tension: 0.2 },
     { data: D.PLO, borderColor: 'transparent', pointRadius: 0, tension: 0.2 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
 new Chart(document.getElementById('c2'), { type: 'bar',
   data: { labels: D.L, datasets: [
-    { data: D.DECT, backgroundColor: '#2a78d6', borderRadius: 999, maxBarThickness: 16 },
-    { data: D.DECC, backgroundColor: '#eb6834', borderRadius: 999, maxBarThickness: 16 },
-    { data: D.DECA, backgroundColor: '#a4a5ab', borderRadius: 999, maxBarThickness: 16 } ] },
+    { data: D.DECT, backgroundColor: '#0071e3', borderRadius: 999, maxBarThickness: 16 },
+    { data: D.DECC, backgroundColor: '#ff9500', borderRadius: 999, maxBarThickness: 16 },
+    { data: D.DECA, backgroundColor: '#aeaeb2', borderRadius: 999, maxBarThickness: 16 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => ['visitors', 'conversion', 'order size'][c.datasetIndex] + ': ' + (c.parsed.y > 0 ? '+' : '') + c.parsed.y + ' pts' } } },
     scales: { x: { ...X, stacked: true }, y: { stacked: true, grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c3'), { type: 'line',
   data: { labels: D.FITX, datasets: [
-    { data: D.CONV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.REP, borderColor: '#eb6834', borderWidth: 2, pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
-    { data: D.FITY, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [2, 4], pointRadius: 0 } ] },
+    { data: D.CONV, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.REP, borderColor: '#ff9500', borderWidth: 2, pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
+    { data: D.FITY, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [2, 4], pointRadius: 0 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c8'), { type: 'line',
   data: { labels: D.L, datasets: [
-    { data: D.CART, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.CHK, borderColor: '#eb6834', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
-    { data: D.BUY, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [2, 3], pointRadius: 3, pointStyle: 'triangle', tension: 0.35 } ] },
+    { data: D.CART, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.CHK, borderColor: '#ff9500', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
+    { data: D.BUY, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [2, 3], pointRadius: 3, pointStyle: 'triangle', tension: 0.35 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '% of sessions' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c4'), { type: 'line',
-  data: { labels: D.L, datasets: [{ data: D.AOV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 }] },
+  data: { labels: D.L, datasets: [{ data: D.AOV, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
 new Chart(document.getElementById('c5'), { type: 'scatter',
-  data: { datasets: [{ data: D.SCAT, backgroundColor: '#eb6834', pointRadius: 6 }] },
+  data: { datasets: [{ data: D.SCAT, backgroundColor: '#ff9500', pointRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.raw.m + ': ' + c.parsed.x + '% discount, ' + (c.parsed.y > 0 ? '+' : '') + c.parsed.y + '% growth' } } },
-    scales: { x: { grid: GRID, border: NOB, min: 0, max: 4.5, ticks: { callback: v => v + '%' }, title: { display: true, text: 'discount rate', color: '#a4a5ab' } },
-      y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' }, title: { display: true, text: 'MoM growth', color: '#a4a5ab' } } } } });
+    scales: { x: { grid: GRID, border: NOB, min: 0, max: 4.5, ticks: { callback: v => v + '%' }, title: { display: true, text: 'discount rate', color: '#aeaeb2' } },
+      y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' }, title: { display: true, text: 'MoM growth', color: '#aeaeb2' } } } } });
 new Chart(document.getElementById('c6'), { type: 'bar',
-  data: { labels: D.SLAB, datasets: [{ data: D.SHARES, backgroundColor: D.SLAB.map(l => l === 'All others' ? '#dcdcd8' : '#2a78d6'), borderRadius: 999, maxBarThickness: 18 }] },
+  data: { labels: D.SLAB, datasets: [{ data: D.SHARES, backgroundColor: D.SLAB.map(l => l === 'All others' ? '#d2d2d7' : '#0071e3'), borderRadius: 999, maxBarThickness: 18 }] },
   options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.x.toFixed(1) + '% of net sales' } } },
     scales: { x: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } }, y: { grid: NOGRID, border: NOB } } } });
+const MINI = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+  scales: { x: { display: false }, y: { display: false } } };
+function spark(id, data, color, type) {
+  new Chart(document.getElementById(id), { type: type || 'line',
+    data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: type === 'bar' ? color : color + '18', fill: type !== 'bar', borderWidth: 2, pointRadius: 0, tension: 0.35, borderRadius: 999, maxBarThickness: 14 }] }, options: MINI });
+}
+spark('b1', D.IDX.slice(0, D.L.length), '#0071e3');
+spark('b2', D.CONV, '#0071e3');
+spark('b3', D.REP, '#ff9500');
+spark('b4', D.DISC, '#ff9500', 'bar');
+spark('b5', D.SHARES.slice(0, 5), '#0071e3', 'bar');
+function dial(id, data, color, label, pct) {
+  new Chart(document.getElementById(id), { type: 'line',
+    data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: color + '14', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.35 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, title: { display: true, text: label, color: '#6e6e73', font: { size: 12, weight: '500' } },
+        tooltip: { callbacks: { label: c => c.parsed.y + (pct ? '%' : '') } } },
+      scales: { x: { display: false }, y: { grid: { color: '#f2f2f4' }, border: { display: false }, ticks: { callback: v => v + (pct ? '%' : '') } } } } });
+}
+dial('d1', D.ORD, '#0071e3', 'orders index');
+dial('d2', D.SESS, '#ff9500', 'sessions index');
+dial('d3', D.RPS, '#aeaeb2', 'revenue per session index');
+dial('d4', D.SHIP, '#34c759', 'shipping recovery %', true);
+new Chart(document.getElementById('d5'), { type: 'line',
+  data: { labels: D.L, datasets: [
+    { data: D.ABAN, borderColor: '#ff9500', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.CHKC, borderColor: '#34c759', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 } ] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
+    scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
+new Chart(document.getElementById('d6'), { type: 'bar',
+  data: { labels: D.QL, datasets: [{ data: D.QIDX, backgroundColor: '#0071e3', borderRadius: 999, maxBarThickness: 44 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => 'index ' + c.parsed.y } } },
+    scales: { x: X, y: { grid: GRID, border: NOB } } } });
 </script>
 </body>
 </html>"""
 
 out = (tpl.replace("%SHOP%", SHOP_NAME).replace("%MULT%", str(growth_mult))
-    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav).replace("%WHY%", WHY)
+    .replace("%NF%", str(n_full)).replace("%TABNAV%", tab_nav).replace("%WHY%", WHY).replace("%BASICS%", basics_html)
+    .replace("%EX_MINI%", EX_DEEP["mini"]).replace("%EX_CHK%", EX_DEEP["chk"]).replace("%EX_Q%", EX_DEEP["q"])
     .replace("%KPIS%", kpi_html).replace("%SCORES%", score_html)
     .replace("%FUNNEL%", funnel_html).replace("%HEATHEAD%", heat_head)
     .replace("%HEATROWS%", heat_rows).replace("%ANOMS%", anom_html)

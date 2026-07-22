@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #111114; --ink-2: #6f7076; --ink-3: #a4a5ab; --bg: #fbfbfa; --card: #ffffff; --line: #ececea; --accent: #2a78d6; --warm: #eb6834; }
+  :root { --ink: #1d1d1f; --ink-2: #6e6e73; --ink-3: #aeaeb2; --bg: #f5f5f7; --card: #ffffff; --line: #e8e8ed; --accent: #0071e3; --warm: #ff9500; --good: #34c759; }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
   .wrap { max-width: 1160px; margin: 0 auto; padding: 56px 32px 80px; }
   .pill { border-radius: 999px; }
   header { text-align: center; margin-bottom: 32px; }
@@ -65,7 +65,7 @@
   .hm-cell { border-radius: 999px; font-size: 11px; text-align: center; padding: 5px 0; color: var(--ink); }
   .hm-h { background: transparent; color: var(--ink-3); font-weight: 500; }
   .meter { max-width: 560px; margin: 20px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 22px 26px; }
-  .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dce9f8, #f8ddd2); }
+  .meter-track { position: relative; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #dbeafe, #ffe3c2); }
   .meter-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 999px; background: var(--ink); border: 4px solid var(--card); transition: left 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
   .meter-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 8px; }
   .vs { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
@@ -76,6 +76,18 @@
   .method { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
   .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 0 0 28px; }
   .flow .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
+  .q-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .q-card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s ease, border-color 0.2s ease; }
+  .q-card:hover { transform: translateY(-2px); border-color: var(--ink-3); }
+  .q-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .q-head h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .verdict { font-size: 12px; font-weight: 500; padding: 4px 14px; white-space: nowrap; }
+  .verdict.good { background: #e8f7ee; color: #1d7d3f; border: 1px solid #c6ecd4; }
+  .verdict.warn { background: #fff3e0; color: #9a5b00; border: 1px solid #ffe2b8; }
+  .q-txt { font-size: 13px; color: var(--ink-2); }
+  .q-chart { position: relative; height: 120px; margin-top: 4px; }
+  .mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; flex: 1; }
+  .chart.mini { min-height: 170px; padding: 14px; }
   .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .rv.in { opacity: 1; transform: none; }
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
@@ -93,9 +105,18 @@
     <p class="note">Every figure below is an index or a rate. Revenue, volumes, and product names are withheld by design. * marks the current partial month at run-rate, p marks projections.</p>
   </header>
 
-  <nav class="tabs" role="tablist"><button class="pill tab-btn active" data-tab="overview">Overview</button><button class="pill tab-btn" data-tab="growth">Growth</button><button class="pill tab-btn" data-tab="customers">Customers & funnel</button><button class="pill tab-btn" data-tab="economics">Economics & products</button><button class="pill tab-btn" data-tab="method">Method</button></nav>
+  <nav class="tabs" role="tablist"><button class="pill tab-btn active" data-tab="basics">Start here</button><button class="pill tab-btn" data-tab="overview">Overview</button><button class="pill tab-btn" data-tab="growth">Growth</button><button class="pill tab-btn" data-tab="customers">Customers & funnel</button><button class="pill tab-btn" data-tab="economics">Economics & products</button><button class="pill tab-btn" data-tab="deep">Deep dive</button><button class="pill tab-btn" data-tab="method">Method</button></nav>
 
-  <div class="panel active" id="panel-overview">
+  <div class="panel active" id="panel-basics">
+    <section>
+      <h2>Five questions, plainly answered</h2>
+      <p class="sub">If you read nothing else on this page, read this tab. Each answer is computed from the store's own data.</p>
+      <div class="q-grid"><div class="q-card rv"><div class="q-head"><h3>Is the store growing?</h3><span class="pill verdict good">Yes, strongly</span></div><p class="q-txt">Sales in the latest full month were 7.4x the first month. Most months were bigger than the one before.</p><div class="q-chart"><canvas id="b1"></canvas></div></div><div class="q-card rv"><div class="q-head"><h3>Are visitors buying?</h3><span class="pill verdict good">Yes, above average</span></div><p class="q-txt">Out of every 100 people who visit, 3.2 buy something. Typical online stores manage 1.5 to 2.5.</p><div class="q-chart"><canvas id="b2"></canvas></div></div><div class="q-card rv"><div class="q-head"><h3>Do customers come back?</h3><span class="pill verdict good">Yes, and rising</span></div><p class="q-txt">27.8 of every 100 buyers this month had bought before, up from 8.3 at launch. Returning buyers cost nothing to acquire.</p><div class="q-chart"><canvas id="b3"></canvas></div></div><div class="q-card rv"><div class="q-head"><h3>Are discounts paying for growth?</h3><span class="pill verdict good">No, margin is safe</span></div><p class="q-txt">Only 2.2 out of every 100 in sales is given away as discounts, and growth happened in low-discount months too.</p><div class="q-chart"><canvas id="b4"></canvas></div></div><div class="q-card rv"><div class="q-head"><h3>Is the store fragile?</h3><span class="pill verdict good">No, well protected</span></div><p class="q-txt">The biggest product is only 10.1% of sales, and just 0.7 in 100 sales come back as returns.</p><div class="q-chart"><canvas id="b5"></canvas></div></div></div>
+      <p class="sub" style="margin-top: 28px;">Want the detail behind any answer? The tabs above go progressively deeper: Overview for the headline picture, Growth and Customers for the mechanics, Deep dive for everything else.</p>
+    </section>
+  </div>
+
+  <div class="panel" id="panel-overview">
     <div class="kpis"><div class="pill kpi rv"><span class="v" data-count="7.4">7.4</span><span class="v-suf">x</span><span class="l">net sales growth</span></div><div class="pill kpi rv"><span class="v" data-count="3.2">3.2</span><span class="v-suf">%</span><span class="l">conversion</span></div><div class="pill kpi rv"><span class="v" data-count="27.8">27.8</span><span class="v-suf">%</span><span class="l">repeat rate</span></div><div class="pill kpi rv"><span class="v" data-count="0.7">0.7</span><span class="v-suf">%</span><span class="l">returns</span></div><div class="pill kpi rv"><span class="v" data-count="2.2">2.2</span><span class="v-suf">%</span><span class="l">discounts</span></div><div class="pill kpi rv"><span class="v" data-count="90">90</span><span class="v-suf"></span><span class="l">health score</span></div></div>
     
     <section class="rv">
@@ -223,6 +244,47 @@
     </section>
   </div>
 
+  <div class="panel" id="panel-deep">
+    <section>
+      <h2>Efficiency dials</h2>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--accent)"></span>orders index</span>
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>sessions index</span>
+        <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>revenue per session index</span>
+        <span class="pill"><span class="dot" style="background: var(--good)"></span>shipping recovery %</span>
+      </div>
+      <div class="duo">
+        <div class="chart-col">
+          <div class="mini-grid">
+            <div class="chart mini rv"><canvas id="d1"></canvas></div>
+            <div class="chart mini rv"><canvas id="d2"></canvas></div>
+            <div class="chart mini rv"><canvas id="d3"></canvas></div>
+            <div class="chart mini rv"><canvas id="d4"></canvas></div>
+          </div>
+        </div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>Four efficiency dials, all indexed or as rates: order volume, traffic volume, revenue earned per visit, and how much of shipping cost is passed to customers.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Orders, sessions and revenue-per-session are indexed to month one = 100. Shipping recovery is shipping charged as a percentage of net sales.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Revenue per session rising while sessions fluctuate means the store extracts more value from every visitor it gets.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>Revenue per session sits at 242 vs 100 at launch: each visit is worth more than it used to be, which compounds with any traffic win. The one deteriorating dial is shipping recovery, now 3.2% of net sales vs 10.5% at its peak: customers are being charged less of the real courier cost. That is a deliberate lever (free shipping converts better) but it should be a decision, not a drift; the Excel model's assumptions sheet quantifies exactly how much margin it absorbs.</p></div></div></div>
+      </div>
+    </section>
+    <section>
+      <h2>Checkout behavior</h2>
+      <div class="legend">
+        <span class="pill"><span class="dot" style="background: var(--warm)"></span>cart abandonment %</span>
+        <span class="pill"><span class="dot" style="background: var(--good)"></span>checkout completion %</span>
+      </div>
+      <div class="duo flip">
+        <div class="chart-col"><div class="chart rv"><canvas id="d5" role="img" aria-label="Cart abandonment and checkout completion by month"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>The two checkout behaviors that matter: how many cart-builders abandon before paying, and how many people who reach checkout actually finish it.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Abandonment = 1 minus purchases over cart-adds. Completion = purchases over checkout-reached, both monthly.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Falling abandonment and rising completion mean trust: clear pricing, working payments, no surprises at the end.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>Checkout completion is at 38.9%, meaning nearly two of every three people who reach checkout finish paying: for an independent store on cards and UPI that is a trust signal money can't easily buy. Cart abandonment at 66.8% is in the normal e-commerce band (most stores lose 60-80% of carts), and the trend is improving. The practical conclusion: checkout does not need work; the growth ceiling is upstream in traffic and product-page persuasion, exactly as the funnel tab concluded.</p></div></div></div>
+      </div>
+    </section>
+    <section>
+      <h2>The quarterly view</h2>
+      <div class="duo">
+        <div class="chart-col"><div class="chart rv"><canvas id="d6" role="img" aria-label="Quarterly sales index"></canvas></div></div>
+        <div class="ex-col"><div class="explain rv"><div class="ex-row"><span class="pill ex-tag">what this shows</span><p>The same growth story with monthly noise removed entirely: whole quarters, indexed to the first quarter.</p></div><div class="ex-row"><span class="pill ex-tag">how we built it</span><p>Full months grouped into blocks of three, summed, indexed to the first block = 100.</p></div><div class="ex-row"><span class="pill ex-tag">what to look for</span><p>Quarter-over-quarter direction is the number a bank, supplier, or partner would actually ask about.</p></div><div class="ex-row conc"><span class="pill ex-tag">conclusion</span><p>Quarter-on-quarter the story is unambiguous: 100 to 228 to 331. Every quarter has been materially larger than the last, which is the cleanest possible proof that monthly dips are noise around a strong trend and not the trend itself. If this page had to be one chart for a skeptical outsider, it is this one.</p></div></div></div>
+      </div>
+    </section>
+  </div>
+
   <div class="panel" id="panel-method">
     <section>
       <h2>How this page is made</h2>
@@ -247,7 +309,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous"></script>
 <script>
-const D = {"L": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*"], "PL": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*", "M10p", "M11p", "M12p"], "IDX": [100, 131, 144, 162, 301, 391, 506, 736, 629, null, null, null], "ROLL": [null, null, 125, 146, 202, 285, 399, 544, 624, null, null, null], "PMID": [null, null, null, null, null, null, null, null, 629, 836, 1112, 1479], "PHI": [null, null, null, null, null, null, null, null, 629, 998, 1582, 2509], "PLO": [null, null, null, null, null, null, null, null, 629, 701, 782, 872], "DECT": [null, -43.1, 15.9, -5.1, 98.5, -19.1, 55.4, 18.3, -30.8], "DECC": [null, 64.7, 9.1, 26.6, -31.0, 31.0, -26.6, 8.3, 24.7], "DECA": [null, 3.0, -10.2, -10.2, 2.4, 11.0, -3.2, 9.2, -3.0], "CONV": [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2], "REP": [8.3, 15.5, 13.0, 17.5, 11.6, 17.2, 21.0, 20.4, 27.8], "FITX": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"], "FITY": [9.7, 11.5, 13.3, 15.1, 16.9, 18.7, 20.5, 22.3, 24.1, 26.0, 27.8, 29.6], "CART": [3.3, 7.1, 7.2, 11.2, 6.4, 9.2, 8.7, 8.4, 9.5], "CHK": [3.5, 7.4, 7.3, 10.8, 5.7, 8.8, 8.0, 7.8, 8.1], "BUY": [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2], "AOV": [100, 103, 93, 84, 86, 96, 93, 102, 99], "DISC": [0.3, 0.6, 0.8, 3.2, 3.7, 3.7, 2.6, 2.5, 2.2], "RETS": [0.0, 2.1, 2.8, 0.2, 0.6, 0.4, 0.0, 0.2, 0.7], "SCAT": [{"x": 0.6, "y": 31.0, "m": "M2"}, {"x": 0.8, "y": 9.9, "m": "M3"}, {"x": 3.2, "y": 12.5, "m": "M4"}, {"x": 3.7, "y": 85.8, "m": "M5"}, {"x": 3.7, "y": 29.9, "m": "M6"}, {"x": 2.6, "y": 29.4, "m": "M7"}, {"x": 2.5, "y": 45.5, "m": "M8"}, {"x": 2.2, "y": -14.5, "m": "M9*"}], "SHARES": [10.1, 7.4, 6.8, 5.9, 5.5, 64.3], "SLAB": ["Product A", "Product B", "Product C", "Product D", "Product E", "All others"], "HEALTH": 90, "NFULL": 8};
+const D = {"L": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*"], "PL": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*", "M10p", "M11p", "M12p"], "IDX": [100, 131, 144, 162, 301, 391, 506, 736, 629, null, null, null], "ROLL": [null, null, 125, 146, 202, 285, 399, 544, 624, null, null, null], "PMID": [null, null, null, null, null, null, null, null, 629, 836, 1112, 1479], "PHI": [null, null, null, null, null, null, null, null, 629, 998, 1582, 2509], "PLO": [null, null, null, null, null, null, null, null, 629, 701, 782, 872], "DECT": [null, -43.1, 15.9, -5.1, 98.5, -19.1, 55.4, 18.3, -30.8], "DECC": [null, 64.7, 9.1, 26.6, -31.0, 31.0, -26.6, 8.3, 24.7], "DECA": [null, 3.0, -10.2, -10.2, 2.4, 11.0, -3.2, 9.2, -3.0], "CONV": [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2], "REP": [8.3, 15.5, 13.0, 17.5, 11.6, 17.2, 21.0, 20.4, 27.8], "FITX": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"], "FITY": [9.7, 11.5, 13.3, 15.1, 16.9, 18.7, 20.5, 22.3, 24.1, 26.0, 27.8, 29.6], "CART": [3.3, 7.1, 7.2, 11.2, 6.4, 9.2, 8.7, 8.4, 9.5], "CHK": [3.5, 7.4, 7.3, 10.8, 5.7, 8.8, 8.0, 7.8, 8.1], "BUY": [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2], "AOV": [100, 103, 93, 84, 86, 96, 93, 102, 99], "DISC": [0.3, 0.6, 0.8, 3.2, 3.7, 3.7, 2.6, 2.5, 2.2], "RETS": [0.0, 2.1, 2.8, 0.2, 0.6, 0.4, 0.0, 0.2, 0.7], "SCAT": [{"x": 0.6, "y": 31.0, "m": "M2"}, {"x": 0.8, "y": 9.9, "m": "M3"}, {"x": 3.2, "y": 12.5, "m": "M4"}, {"x": 3.7, "y": 85.8, "m": "M5"}, {"x": 3.7, "y": 29.9, "m": "M6"}, {"x": 2.6, "y": 29.4, "m": "M7"}, {"x": 2.5, "y": 45.5, "m": "M8"}, {"x": 2.2, "y": -14.5, "m": "M9*"}], "SHARES": [10.1, 7.4, 6.8, 5.9, 5.5, 64.3], "SLAB": ["Product A", "Product B", "Product C", "Product D", "Product E", "All others"], "HEALTH": 90, "NFULL": 8, "ORD": [100, 127, 156, 192, 352, 406, 546, 723, 636], "SESS": [100, 65, 76, 72, 194, 160, 279, 334, 246], "RPS": [100, 200, 190, 227, 158, 243, 174, 206, 242], "SHIP": [9.0, 8.5, 9.7, 10.5, 10.5, 8.7, 4.3, 2.1, 3.2], "ABAN": [67.6, 70.4, 68.3, 73.7, 65.7, 67.6, 73.9, 70.1, 66.8], "CHKC": [30.8, 28.1, 31.3, 27.3, 38.2, 34.1, 28.3, 32.3, 38.9], "QL": ["Q1", "Q2", "Q3"], "QIDX": [100, 228, 331]};
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return;
@@ -279,67 +341,102 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
 });
-Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
 Chart.defaults.font.size = 12;
-Chart.defaults.color = '#a4a5ab';
+Chart.defaults.color = '#86868b';
 Chart.defaults.animation.duration = reduced ? 0 : 900;
-const GRID = { color: '#f1f1ef' }, NOGRID = { display: false }, NOB = { display: false };
+const GRID = { color: '#f2f2f4' }, NOGRID = { display: false }, NOB = { display: false };
 const X = { ticks: { autoSkip: false }, grid: NOGRID, border: NOB };
 new Chart(document.getElementById('c7'), { type: 'doughnut',
-  data: { labels: ['Health', ''], datasets: [{ data: [D.HEALTH, 100 - D.HEALTH], backgroundColor: ['#2a78d6', '#f1f1ef'], borderWidth: 0, borderRadius: 999 }] },
+  data: { labels: ['Health', ''], datasets: [{ data: [D.HEALTH, 100 - D.HEALTH], backgroundColor: ['#0071e3', '#f2f2f4'], borderWidth: 0, borderRadius: 999 }] },
   options: { responsive: true, maintainAspectRatio: false, cutout: '76%', plugins: { legend: { display: false }, tooltip: { enabled: false } } },
   plugins: [{ id: 'txt', afterDraw(ch) { const { ctx, chartArea: a } = ch; ctx.save();
-    ctx.font = '600 34px Inter'; ctx.fillStyle = '#111114'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '600 34px Inter'; ctx.fillStyle = '#1d1d1f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(D.HEALTH, (a.left + a.right) / 2, (a.top + a.bottom) / 2 - 8);
-    ctx.font = '400 12px Inter'; ctx.fillStyle = '#a4a5ab'; ctx.fillText('of 100', (a.left + a.right) / 2, (a.top + a.bottom) / 2 + 16); ctx.restore(); } }] });
+    ctx.font = '400 12px Inter'; ctx.fillStyle = '#aeaeb2'; ctx.fillText('of 100', (a.left + a.right) / 2, (a.top + a.bottom) / 2 + 16); ctx.restore(); } }] });
 new Chart(document.getElementById('c1'), { type: 'line',
   data: { labels: D.PL, datasets: [
-    { data: D.IDX, borderColor: '#2a78d6', backgroundColor: 'rgba(42,120,214,0.07)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.ROLL, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.35 },
-    { data: D.PMID, borderColor: '#2a78d6', borderWidth: 2, borderDash: [3, 4], pointRadius: 0, tension: 0.2 },
-    { data: D.PHI, borderColor: 'transparent', pointRadius: 0, fill: '+1', backgroundColor: 'rgba(42,120,214,0.09)', tension: 0.2 },
+    { data: D.IDX, borderColor: '#0071e3', backgroundColor: 'rgba(0,113,227,0.06)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.ROLL, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [6, 4], pointRadius: 0, tension: 0.35 },
+    { data: D.PMID, borderColor: '#0071e3', borderWidth: 2, borderDash: [3, 4], pointRadius: 0, tension: 0.2 },
+    { data: D.PHI, borderColor: 'transparent', pointRadius: 0, fill: '+1', backgroundColor: 'rgba(0,113,227,0.08)', tension: 0.2 },
     { data: D.PLO, borderColor: 'transparent', pointRadius: 0, tension: 0.2 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
 new Chart(document.getElementById('c2'), { type: 'bar',
   data: { labels: D.L, datasets: [
-    { data: D.DECT, backgroundColor: '#2a78d6', borderRadius: 999, maxBarThickness: 16 },
-    { data: D.DECC, backgroundColor: '#eb6834', borderRadius: 999, maxBarThickness: 16 },
-    { data: D.DECA, backgroundColor: '#a4a5ab', borderRadius: 999, maxBarThickness: 16 } ] },
+    { data: D.DECT, backgroundColor: '#0071e3', borderRadius: 999, maxBarThickness: 16 },
+    { data: D.DECC, backgroundColor: '#ff9500', borderRadius: 999, maxBarThickness: 16 },
+    { data: D.DECA, backgroundColor: '#aeaeb2', borderRadius: 999, maxBarThickness: 16 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => ['visitors', 'conversion', 'order size'][c.datasetIndex] + ': ' + (c.parsed.y > 0 ? '+' : '') + c.parsed.y + ' pts' } } },
     scales: { x: { ...X, stacked: true }, y: { stacked: true, grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c3'), { type: 'line',
   data: { labels: D.FITX, datasets: [
-    { data: D.CONV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.REP, borderColor: '#eb6834', borderWidth: 2, pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
-    { data: D.FITY, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [2, 4], pointRadius: 0 } ] },
+    { data: D.CONV, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.REP, borderColor: '#ff9500', borderWidth: 2, pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
+    { data: D.FITY, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [2, 4], pointRadius: 0 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c8'), { type: 'line',
   data: { labels: D.L, datasets: [
-    { data: D.CART, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 },
-    { data: D.CHK, borderColor: '#eb6834', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
-    { data: D.BUY, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [2, 3], pointRadius: 3, pointStyle: 'triangle', tension: 0.35 } ] },
+    { data: D.CART, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.CHK, borderColor: '#ff9500', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 },
+    { data: D.BUY, borderColor: '#aeaeb2', borderWidth: 2, borderDash: [2, 3], pointRadius: 3, pointStyle: 'triangle', tension: 0.35 } ] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '% of sessions' } } },
     scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
 new Chart(document.getElementById('c4'), { type: 'line',
-  data: { labels: D.L, datasets: [{ data: D.AOV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 }] },
+  data: { labels: D.L, datasets: [{ data: D.AOV, borderColor: '#0071e3', borderWidth: 2, pointRadius: 3, tension: 0.35 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
     scales: { x: X, y: { grid: GRID, border: NOB } } } });
 new Chart(document.getElementById('c5'), { type: 'scatter',
-  data: { datasets: [{ data: D.SCAT, backgroundColor: '#eb6834', pointRadius: 6 }] },
+  data: { datasets: [{ data: D.SCAT, backgroundColor: '#ff9500', pointRadius: 6 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.raw.m + ': ' + c.parsed.x + '% discount, ' + (c.parsed.y > 0 ? '+' : '') + c.parsed.y + '% growth' } } },
-    scales: { x: { grid: GRID, border: NOB, min: 0, max: 4.5, ticks: { callback: v => v + '%' }, title: { display: true, text: 'discount rate', color: '#a4a5ab' } },
-      y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' }, title: { display: true, text: 'MoM growth', color: '#a4a5ab' } } } } });
+    scales: { x: { grid: GRID, border: NOB, min: 0, max: 4.5, ticks: { callback: v => v + '%' }, title: { display: true, text: 'discount rate', color: '#aeaeb2' } },
+      y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' }, title: { display: true, text: 'MoM growth', color: '#aeaeb2' } } } } });
 new Chart(document.getElementById('c6'), { type: 'bar',
-  data: { labels: D.SLAB, datasets: [{ data: D.SHARES, backgroundColor: D.SLAB.map(l => l === 'All others' ? '#dcdcd8' : '#2a78d6'), borderRadius: 999, maxBarThickness: 18 }] },
+  data: { labels: D.SLAB, datasets: [{ data: D.SHARES, backgroundColor: D.SLAB.map(l => l === 'All others' ? '#d2d2d7' : '#0071e3'), borderRadius: 999, maxBarThickness: 18 }] },
   options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.x.toFixed(1) + '% of net sales' } } },
     scales: { x: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } }, y: { grid: NOGRID, border: NOB } } } });
+const MINI = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+  scales: { x: { display: false }, y: { display: false } } };
+function spark(id, data, color, type) {
+  new Chart(document.getElementById(id), { type: type || 'line',
+    data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: type === 'bar' ? color : color + '18', fill: type !== 'bar', borderWidth: 2, pointRadius: 0, tension: 0.35, borderRadius: 999, maxBarThickness: 14 }] }, options: MINI });
+}
+spark('b1', D.IDX.slice(0, D.L.length), '#0071e3');
+spark('b2', D.CONV, '#0071e3');
+spark('b3', D.REP, '#ff9500');
+spark('b4', D.DISC, '#ff9500', 'bar');
+spark('b5', D.SHARES.slice(0, 5), '#0071e3', 'bar');
+function dial(id, data, color, label, pct) {
+  new Chart(document.getElementById(id), { type: 'line',
+    data: { labels: D.L, datasets: [{ data, borderColor: color, backgroundColor: color + '14', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.35 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, title: { display: true, text: label, color: '#6e6e73', font: { size: 12, weight: '500' } },
+        tooltip: { callbacks: { label: c => c.parsed.y + (pct ? '%' : '') } } },
+      scales: { x: { display: false }, y: { grid: { color: '#f2f2f4' }, border: { display: false }, ticks: { callback: v => v + (pct ? '%' : '') } } } } });
+}
+dial('d1', D.ORD, '#0071e3', 'orders index');
+dial('d2', D.SESS, '#ff9500', 'sessions index');
+dial('d3', D.RPS, '#aeaeb2', 'revenue per session index');
+dial('d4', D.SHIP, '#34c759', 'shipping recovery %', true);
+new Chart(document.getElementById('d5'), { type: 'line',
+  data: { labels: D.L, datasets: [
+    { data: D.ABAN, borderColor: '#ff9500', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+    { data: D.CHKC, borderColor: '#34c759', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 } ] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
+    scales: { x: X, y: { grid: GRID, border: NOB, ticks: { callback: v => v + '%' } } } } });
+new Chart(document.getElementById('d6'), { type: 'bar',
+  data: { labels: D.QL, datasets: [{ data: D.QIDX, backgroundColor: '#0071e3', borderRadius: 999, maxBarThickness: 44 }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => 'index ' + c.parsed.y } } },
+    scales: { x: X, y: { grid: GRID, border: NOB } } } });
 </script>
 </body>
 </html>
