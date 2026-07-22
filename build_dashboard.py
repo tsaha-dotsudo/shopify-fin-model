@@ -69,6 +69,22 @@ kpis = [
     (f"{disc[-1]}%", "discounts"),
 ]
 
+
+# plain-language explainers, computed from the data
+best_mom = max(v for v in mom if v is not None)
+worst_mom = min(v for v in mom if v is not None)
+per100_cart = funnel[1][1]
+per100_buy = funnel[3][1]
+say = {
+    "c1": f"If the first full month's sales were 100 rupees, the latest full month brought in {idx[-2] if last_partial else idx[-1]} rupees. Same store, {growth_mult}x the sales.",
+    "c2": f"Each bar is how much sales moved vs the month before. Best month: +{best_mom:g}%. Worst: {worst_mom:g}%. Orange bars mean sales shrank that month.",
+    "c3": f"Conversion: out of every 100 visitors, {conv[-1]:g} end up buying (typical online stores see 1.5 to 2.5). Repeat rate: {repeat[-1]:g} of every 100 buyers have bought before, up from {repeat[0]:g} at launch. Rising repeat rate means people come back.",
+    "funnel": f"Out of every 100 people who visited last month, about {per100_cart:g} put something in the cart and {per100_buy:g} actually bought. Every step loses people; the smaller the drop, the healthier the store.",
+    "c4": f"AOV is the size of an average order. Index {aov_idx[-1]} means today's average order is about the same size as month one's. Growth has come from more orders, not bigger ones.",
+    "c5": f"Discounts currently give away {disc[-1]:g} paise of every 100 paise sold (low). Returns take back {rets[-1]:g} of every 100 (very low). Both under control means growth is not being bought with margin.",
+    "c6": f"The biggest product earns {shares[0]:g}% of all sales; the top five together earn {sum(shares[:5]):g}%. The rest is spread across many smaller products, which protects the store if one product slows down.",
+}
+
 kpi_html = "".join(
     f'<div class="pill kpi"><span class="v">{v}</span><span class="l">{l}</span></div>'
     for v, l in kpis
@@ -121,6 +137,8 @@ html = f"""<!DOCTYPE html>
   .bar-track {{ height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }}
   .bar-fill {{ height: 100%; background: var(--accent); border-radius: 999px; }}
   .pct {{ font-size: 13px; font-weight: 500; text-align: right; }}
+  .say {{ max-width: 620px; margin: 14px auto 0; font-size: 13px; color: var(--ink-2); text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 10px 22px; }}
+  @media (max-width: 560px) {{ .say {{ border-radius: 20px; }} }}
   footer {{ text-align: center; font-size: 12px; color: var(--ink-3); }}
   footer .pill {{ display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }}
   @media (max-width: 480px) {{ .step {{ grid-template-columns: 110px 1fr 46px; }} }}
@@ -140,12 +158,14 @@ html = f"""<!DOCTYPE html>
     <h2>Net sales index</h2>
     <p class="sub">First full month = 100</p>
     <div class="chart"><canvas id="c1" role="img" aria-label="Net sales index by month"></canvas></div>
+    <p class="say">{say["c1"]}</p>
   </section>
 
   <section>
     <h2>Month over month growth</h2>
     <p class="sub">Change in net sales index vs prior month</p>
     <div class="chart"><canvas id="c2" role="img" aria-label="Month over month growth in percent"></canvas></div>
+    <p class="say">{say["c2"]}</p>
   </section>
 
   <section>
@@ -155,12 +175,14 @@ html = f"""<!DOCTYPE html>
       <span class="pill"><span class="dot" style="background: var(--warm)"></span>repeat rate (dashed)</span>
     </div>
     <div class="chart"><canvas id="c3" role="img" aria-label="Conversion rate and repeat customer rate by month"></canvas></div>
+    <p class="say">{say["c3"]}</p>
   </section>
 
   <section>
     <h2>Where sessions go</h2>
     <p class="sub">Latest month, each stage as a share of all sessions</p>
     <div class="funnel">{funnel_html}</div>
+    <p class="say">{say["funnel"]}</p>
   </section>
 
   <section>
@@ -174,12 +196,25 @@ html = f"""<!DOCTYPE html>
       <div class="chart"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div>
       <div class="chart"><canvas id="c5" role="img" aria-label="Discount rate and return rate by month"></canvas></div>
     </div>
+    <p class="say">{say["c4"]} {say["c5"]}</p>
   </section>
 
   <section>
     <h2>Product concentration</h2>
     <p class="sub">Share of net sales, top five products anonymized</p>
     <div class="chart tall"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
+    <p class="say">{say["c6"]}</p>
+  </section>
+
+  <section>
+    <h2>How to read this page</h2>
+    <div class="kpis" style="margin: 20px 0 0;">
+      <div class="pill kpi"><span class="l"><b>Index</b> hides real amounts: month one = 100, everything else is relative to it</span></div>
+      <div class="pill kpi"><span class="l"><b>Conversion</b> = buyers per 100 visitors</span></div>
+      <div class="pill kpi"><span class="l"><b>Repeat rate</b> = returning buyers per 100 buyers</span></div>
+      <div class="pill kpi"><span class="l"><b>AOV</b> = average order value, the size of a typical order</span></div>
+      <div class="pill kpi"><span class="l"><b>M9*</b> = current month, projected to full-month pace</span></div>
+    </div>
   </section>
 
   <footer><span class="pill">{SHOP_NAME} / shopify-fin-model / ShopifyQL</span></footer>
