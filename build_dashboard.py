@@ -312,7 +312,12 @@ tpl = """<!DOCTYPE html>
   section { margin-bottom: 72px; }
   h2 { font-size: clamp(18px, 2.2vw, 24px); font-weight: 600; letter-spacing: -0.01em; text-align: center; }
   .sub { font-size: 14px; color: var(--ink-2); text-align: center; margin: 6px auto 26px; max-width: 620px; }
-  .duo { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+  .duo { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: stretch; }
+  .chart-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .chart-col .chart { flex: 1 1 auto; height: auto; min-height: 300px; }
+  .chart-col .funnel { flex: 0 0 auto; }
+  .ex-col { display: flex; flex-direction: column; justify-content: center; gap: 14px; min-width: 0; }
+  .ex-col .explain { height: 100%; justify-content: center; }
   .duo.flip .chart-col { order: 2; } .duo.flip .ex-col { order: 1; }
   .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 22px; transition: border-color 0.25s ease; }
   .chart:hover { border-color: var(--ink-3); }
@@ -355,7 +360,7 @@ tpl = """<!DOCTYPE html>
   footer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; }
   footer .pill { display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
   @media (max-width: 860px) { .duo { grid-template-columns: 1fr; } .duo.flip .chart-col { order: 1; } .duo.flip .ex-col { order: 2; } .vs-row { grid-template-columns: 1fr; } .arr { transform: rotate(90deg); } }
-  @media (max-width: 560px) { .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
+  @media (max-width: 560px) { .chart-col .chart { min-height: 240px; } .step { grid-template-columns: 110px 1fr 46px; } .ex-row { grid-template-columns: 1fr; gap: 4px; } }
   @media (prefers-reduced-motion: reduce) { .rv, .panel.active, .bar-fill, .meter-dot, .tab-btn, .kpi, .chart { transition: none; animation: none; } .rv { opacity: 1; transform: none; } }
 </style>
 </head>
@@ -378,7 +383,7 @@ tpl = """<!DOCTYPE html>
       <div class="duo">
         <div class="chart-col">
           <div class="chart rv"><canvas id="c7" role="img" aria-label="Overall store health score donut"></canvas></div>
-          <div class="funnel rv" style="margin-top: 20px;">%SCORES%</div>
+          <div class="funnel rv">%SCORES%</div>
         </div>
         <div class="ex-col">%EX_HEALTH%</div>
       </div>
@@ -409,13 +414,16 @@ tpl = """<!DOCTYPE html>
     <section>
       <h2>Momentum heatmap</h2>
       <p class="sub">Blue = improved vs prior month, orange = declined, deeper = bigger move</p>
-      <div class="hm rv">%HEATHEAD%%HEATROWS%</div>
-      <div class="below">%EX_HEAT%</div>
+      <div class="duo flip">
+        <div class="chart-col"><div class="hm rv" style="flex: 1;">%HEATHEAD%%HEATROWS%</div></div>
+        <div class="ex-col">%EX_HEAT%</div>
+      </div>
     </section>
     <section>
       <h2>Anomalies detected</h2>
       <div class="kpis" style="margin: 16px 0 20px;">%ANOMS%</div>
       <div class="below">%EX_ANOMS%</div>
+
     </section>
   </div>
 
@@ -436,7 +444,7 @@ tpl = """<!DOCTYPE html>
       <h2>The funnel, now and over time</h2>
       <div class="duo flip">
         <div class="chart-col">
-          <div class="funnel rv" style="margin-bottom: 20px;">%FUNNEL%</div>
+          <div class="funnel rv">%FUNNEL%</div>
           <div class="chart rv"><canvas id="c8" role="img" aria-label="Funnel stage rates across months"></canvas></div>
         </div>
         <div class="ex-col">
