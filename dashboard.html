@@ -3,107 +3,155 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SHOP_NAME - store performance</title>
+<title>SHOP_NAME - store analytics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #16181d; --ink-2: #5b6069; --ink-3: #8a8f98;
-    --paper: #f6f6f3; --card: #ffffff; --line: #e3e3dd;
-    --signal: #2a78d6; --ember: #eb6834;
+    --ink: #111114; --ink-2: #6f7076; --ink-3: #a4a5ab;
+    --bg: #fbfbfa; --card: #ffffff; --line: #ececea;
+    --accent: #2a78d6; --warm: #eb6834;
   }
   * { box-sizing: border-box; margin: 0; }
-  body { background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 64px; }
-  header { border-bottom: 2px solid var(--ink); padding-bottom: 20px; margin-bottom: 8px; }
-  .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
-  h1 { font-family: 'IBM Plex Sans Condensed', sans-serif; font-weight: 600; font-size: clamp(28px, 5vw, 44px); line-height: 1.1; margin-top: 6px; }
-  .note { font-size: 13px; color: var(--ink-3); margin: 12px 0 36px; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 44px; }
-  .kpi { background: var(--card); padding: 18px 20px; display: flex; flex-direction: column; gap: 2px; }
-  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
-  .kpi-value { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 32px; }
-  .kpi-sub { font-size: 12px; color: var(--ink-3); }
-  section { margin-bottom: 44px; }
-  h2 { font-family: 'IBM Plex Sans Condensed', sans-serif; font-weight: 500; font-size: 20px; margin-bottom: 4px; }
-  .sub { font-size: 13px; color: var(--ink-2); margin-bottom: 16px; }
-  .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); padding: 16px; }
-  .chart.tall { height: 340px; }
-  .legend { display: flex; gap: 18px; font-size: 12px; color: var(--ink-2); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
-  .sw { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
-  footer { border-top: 1px solid var(--line); padding-top: 16px; font-size: 12px; color: var(--ink-3); font-family: 'IBM Plex Mono', monospace; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px 72px; }
+  .pill { border-radius: 999px; }
+  header { text-align: center; margin-bottom: 40px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; }
+  h1 { font-size: clamp(26px, 4.5vw, 38px); font-weight: 600; letter-spacing: -0.02em; margin: 20px auto 8px; max-width: 560px; line-height: 1.2; }
+  .note { font-size: 13px; color: var(--ink-3); max-width: 520px; margin: 0 auto; }
+  .kpis { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 36px 0 56px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); padding: 10px 22px; display: flex; align-items: baseline; gap: 8px; }
+  .kpi .v { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .kpi .l { font-size: 12px; color: var(--ink-2); }
+  section { margin-bottom: 56px; }
+  h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; text-align: center; }
+  .sub { font-size: 13px; color: var(--ink-2); text-align: center; margin: 4px 0 20px; }
+  .chart { position: relative; height: 280px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
+  .chart.tall { height: 330px; }
+  .legend { display: flex; justify-content: center; gap: 10px; margin-bottom: 14px; }
+  .legend .pill { font-size: 12px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); padding: 4px 14px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .funnel { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .step { display: grid; grid-template-columns: 150px 1fr 52px; align-items: center; gap: 12px; }
+  .tag { font-size: 12px; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); padding: 4px 12px; text-align: center; }
+  .bar-track { height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .pct { font-size: 13px; font-weight: 500; text-align: right; }
+  footer { text-align: center; font-size: 12px; color: var(--ink-3); }
+  footer .pill { display: inline-block; background: var(--card); border: 1px solid var(--line); padding: 6px 16px; }
+  @media (max-width: 480px) { .step { grid-template-columns: 110px 1fr 46px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <span class="eyebrow">store performance / anonymized</span>
-    <h1>7.4x in 8 months, without a single discount war</h1>
+    <span class="eyebrow">store analytics / anonymized</span>
+    <h1>7.4x net sales in 8 months</h1>
+    <p class="note">Generated 2026-07-22. Indexes and rates only; revenue, volumes, and product names withheld. * marks the current partial month at run-rate.</p>
   </header>
-  <p class="note">Generated 2026-07-22 by build_dashboard.py. All figures are indexes and rates; absolute revenue, volumes, and product names are withheld by design. * = partial month at run-rate.</p>
 
-  <div class="kpis"><div class="kpi"><span class="kpi-label">Net sales growth</span><span class="kpi-value">7.4x</span><span class="kpi-sub">first to latest full month</span></div><div class="kpi"><span class="kpi-label">Conversion rate</span><span class="kpi-value">3.2%</span><span class="kpi-sub">latest month</span></div><div class="kpi"><span class="kpi-label">Repeat customer rate</span><span class="kpi-value">27.8%</span><span class="kpi-sub">up from 8.3% at launch</span></div><div class="kpi"><span class="kpi-label">Return rate</span><span class="kpi-value">0.7%</span><span class="kpi-sub">of gross, latest month</span></div></div>
+  <div class="kpis"><div class="pill kpi"><span class="v">7.4x</span><span class="l">net sales growth</span></div><div class="pill kpi"><span class="v">3.2%</span><span class="l">conversion</span></div><div class="pill kpi"><span class="v">27.8%</span><span class="l">repeat rate</span></div><div class="pill kpi"><span class="v">0.7%</span><span class="l">returns</span></div><div class="pill kpi"><span class="v">2.2%</span><span class="l">discounts</span></div></div>
 
   <section>
     <h2>Net sales index</h2>
-    <p class="sub">First full month = 100. The dashed segment is the current partial month projected at run-rate.</p>
-    <div class="chart"><canvas id="c1" role="img" aria-label="Line chart of net sales index over 9 months"></canvas></div>
+    <p class="sub">First full month = 100</p>
+    <div class="chart"><canvas id="c1" role="img" aria-label="Net sales index by month"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Month over month growth</h2>
+    <p class="sub">Change in net sales index vs prior month</p>
+    <div class="chart"><canvas id="c2" role="img" aria-label="Month over month growth in percent"></canvas></div>
   </section>
 
   <section>
     <h2>Conversion and repeat rate</h2>
-    <p class="sub">Both climbing: the store converts visitors better and brings more of them back.</p>
     <div class="legend">
-      <span><span class="sw" style="background: var(--signal)"></span>conversion rate</span>
-      <span><span class="sw" style="background: var(--ember); height: 3px;"></span>repeat customer rate (dashed)</span>
+      <span class="pill"><span class="dot" style="background: var(--accent)"></span>conversion</span>
+      <span class="pill"><span class="dot" style="background: var(--warm)"></span>repeat rate (dashed)</span>
     </div>
-    <div class="chart"><canvas id="c2" role="img" aria-label="Conversion rate and repeat customer rate by month"></canvas></div>
+    <div class="chart"><canvas id="c3" role="img" aria-label="Conversion rate and repeat customer rate by month"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Where sessions go</h2>
+    <p class="sub">Latest month, each stage as a share of all sessions</p>
+    <div class="funnel"><div class="step"><span class="pill tag">Visited</span><div class="bar-track"><div class="bar-fill" style="width:100.0%"></div></div><span class="pct">100%</span></div><div class="step"><span class="pill tag">Added to cart</span><div class="bar-track"><div class="bar-fill" style="width:9.5%"></div></div><span class="pct">9.5%</span></div><div class="step"><span class="pill tag">Reached checkout</span><div class="bar-track"><div class="bar-fill" style="width:8.1%"></div></div><span class="pct">8.1%</span></div><div class="step"><span class="pill tag">Purchased</span><div class="bar-track"><div class="bar-fill" style="width:3.2%"></div></div><span class="pct">3.2%</span></div></div>
+  </section>
+
+  <section>
+    <h2>Order economics</h2>
+    <div class="legend">
+      <span class="pill"><span class="dot" style="background: var(--accent)"></span>AOV index</span>
+      <span class="pill"><span class="dot" style="background: var(--warm)"></span>discount rate %</span>
+      <span class="pill"><span class="dot" style="background: var(--ink-3)"></span>return rate %</span>
+    </div>
+    <div class="grid2">
+      <div class="chart"><canvas id="c4" role="img" aria-label="Average order value index by month"></canvas></div>
+      <div class="chart"><canvas id="c5" role="img" aria-label="Discount rate and return rate by month"></canvas></div>
+    </div>
   </section>
 
   <section>
     <h2>Product concentration</h2>
-    <p class="sub">Share of net sales held by the top five products, anonymized.</p>
-    <div class="chart tall"><canvas id="c3" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
+    <p class="sub">Share of net sales, top five products anonymized</p>
+    <div class="chart tall"><canvas id="c6" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
   </section>
 
-  <footer>SHOP_NAME / shopify-fin-model / data via ShopifyQL</footer>
+  <footer><span class="pill">SHOP_NAME / shopify-fin-model / ShopifyQL</span></footer>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const L = ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*"];
 const IDX = [100, 131, 144, 162, 301, 391, 506, 736, 629];
+const MOM = [null, 31.0, 9.9, 12.5, 85.8, 29.9, 29.4, 45.5, -14.5];
 const CONV = [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2];
 const REP = [8.3, 15.5, 13.0, 17.5, 11.6, 17.2, 21.0, 20.4, 27.8];
+const AOV = [100, 103, 93, 84, 86, 96, 93, 102, 99];
+const DISC = [0.3, 0.6, 0.8, 3.2, 3.7, 3.7, 2.6, 2.5, 2.2];
+const RETS = [0.0, 2.1, 2.8, 0.2, 0.6, 0.4, 0.0, 0.2, 0.7];
 const SHARES = [10.1, 7.4, 6.8, 5.9, 5.5, 64.3];
 const SLAB = ["Product A", "Product B", "Product C", "Product D", "Product E", "All others"];
 const PARTIAL = true;
-Chart.defaults.font.family = "'IBM Plex Mono', monospace";
-Chart.defaults.color = '#8a8f98';
-new Chart(document.getElementById('c1'), {
-  type: 'line',
-  data: { labels: L, datasets: [{ data: IDX, borderColor: '#2a78d6', backgroundColor: 'rgba(42,120,214,0.08)', fill: true, borderWidth: 2, pointRadius: 3,
-    segment: { borderDash: ctx => (PARTIAL && ctx.p1DataIndex === L.length - 1) ? [6, 4] : undefined } }] },
-  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-    scales: { x: { ticks: { autoSkip: false }, grid: { display: false } }, y: { grid: { color: '#eeeee8' } } } }
-});
-new Chart(document.getElementById('c2'), {
-  type: 'line',
-  data: { labels: L, datasets: [
-    { data: CONV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3 },
-    { data: REP, borderColor: '#eb6834', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect' } ] },
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#a4a5ab';
+const GRID = { color: '#f1f1ef' };
+const NOGRID = { display: false };
+function line(id, datasets, yFmt) {
+  new Chart(document.getElementById(id), { type: 'line',
+    data: { labels: L, datasets },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+      tooltip: yFmt ? { callbacks: { label: c => yFmt(c.parsed.y) } } : undefined },
+      scales: { x: { ticks: { autoSkip: false }, grid: NOGRID, border: { display: false } },
+        y: { grid: GRID, border: { display: false }, ticks: yFmt ? { callback: v => yFmt(v) } : undefined } } } });
+}
+line('c1', [{ data: IDX, borderColor: '#2a78d6', backgroundColor: 'rgba(42,120,214,0.07)', fill: true, borderWidth: 2, pointRadius: 3, tension: 0.35,
+  segment: { borderDash: ctx => (PARTIAL && ctx.p1DataIndex === L.length - 1) ? [6, 4] : undefined } }]);
+new Chart(document.getElementById('c2'), { type: 'bar',
+  data: { labels: L, datasets: [{ data: MOM, backgroundColor: MOM.map(v => v !== null && v < 0 ? '#eb6834' : '#2a78d6'), borderRadius: 999, maxBarThickness: 18 }] },
   options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
-    tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
-    scales: { x: { ticks: { autoSkip: false }, grid: { display: false } },
-      y: { ticks: { callback: v => v + '%' }, grid: { color: '#eeeee8' } } } }
-});
-new Chart(document.getElementById('c3'), {
-  type: 'bar',
+    tooltip: { callbacks: { label: c => (c.parsed.y > 0 ? '+' : '') + c.parsed.y + '%' } } },
+    scales: { x: { ticks: { autoSkip: false }, grid: NOGRID, border: { display: false } },
+      y: { grid: GRID, border: { display: false }, ticks: { callback: v => v + '%' } } } } });
+line('c3', [
+  { data: CONV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+  { data: REP, borderColor: '#eb6834', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 }
+], v => v.toFixed(1) + '%');
+line('c4', [{ data: AOV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3, tension: 0.35 }]);
+line('c5', [
+  { data: DISC, borderColor: '#eb6834', borderWidth: 2, pointRadius: 3, tension: 0.35 },
+  { data: RETS, borderColor: '#a4a5ab', borderWidth: 2, borderDash: [4, 4], pointRadius: 3, pointStyle: 'rect', tension: 0.35 }
+], v => v.toFixed(1) + '%');
+new Chart(document.getElementById('c6'), { type: 'bar',
   data: { labels: SLAB, datasets: [{ data: SHARES,
-    backgroundColor: SLAB.map(l => l === 'All others' ? '#c9c9c2' : '#2a78d6'), borderRadius: 3, maxBarThickness: 22 }] },
+    backgroundColor: SLAB.map(l => l === 'All others' ? '#dcdcd8' : '#2a78d6'), borderRadius: 999, maxBarThickness: 18 }] },
   options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
     tooltip: { callbacks: { label: c => c.parsed.x.toFixed(1) + '% of net sales' } } },
-    scales: { x: { ticks: { callback: v => v + '%' }, grid: { color: '#eeeee8' } }, y: { grid: { display: false } } } }
-});
+    scales: { x: { grid: GRID, border: { display: false }, ticks: { callback: v => v + '%' } },
+      y: { grid: NOGRID, border: { display: false } } } } });
 </script>
 </body>
 </html>
