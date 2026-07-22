@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SHOP_NAME - store performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16181d; --ink-2: #5b6069; --ink-3: #8a8f98;
+    --paper: #f6f6f3; --card: #ffffff; --line: #e3e3dd;
+    --signal: #2a78d6; --ember: #eb6834;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 64px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 20px; margin-bottom: 8px; }
+  .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  h1 { font-family: 'IBM Plex Sans Condensed', sans-serif; font-weight: 600; font-size: clamp(28px, 5vw, 44px); line-height: 1.1; margin-top: 6px; }
+  .note { font-size: 13px; color: var(--ink-3); margin: 12px 0 36px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 44px; }
+  .kpi { background: var(--card); padding: 18px 20px; display: flex; flex-direction: column; gap: 2px; }
+  .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+  .kpi-value { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 32px; }
+  .kpi-sub { font-size: 12px; color: var(--ink-3); }
+  section { margin-bottom: 44px; }
+  h2 { font-family: 'IBM Plex Sans Condensed', sans-serif; font-weight: 500; font-size: 20px; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: var(--ink-2); margin-bottom: 16px; }
+  .chart { position: relative; height: 300px; background: var(--card); border: 1px solid var(--line); padding: 16px; }
+  .chart.tall { height: 340px; }
+  .legend { display: flex; gap: 18px; font-size: 12px; color: var(--ink-2); margin-bottom: 10px; font-family: 'IBM Plex Mono', monospace; }
+  .sw { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
+  footer { border-top: 1px solid var(--line); padding-top: 16px; font-size: 12px; color: var(--ink-3); font-family: 'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">store performance / anonymized</span>
+    <h1>7.4x in 8 months, without a single discount war</h1>
+  </header>
+  <p class="note">Generated 2026-07-22 by build_dashboard.py. All figures are indexes and rates; absolute revenue, volumes, and product names are withheld by design. * = partial month at run-rate.</p>
+
+  <div class="kpis"><div class="kpi"><span class="kpi-label">Net sales growth</span><span class="kpi-value">7.4x</span><span class="kpi-sub">first to latest full month</span></div><div class="kpi"><span class="kpi-label">Conversion rate</span><span class="kpi-value">3.2%</span><span class="kpi-sub">latest month</span></div><div class="kpi"><span class="kpi-label">Repeat customer rate</span><span class="kpi-value">27.8%</span><span class="kpi-sub">up from 8.3% at launch</span></div><div class="kpi"><span class="kpi-label">Return rate</span><span class="kpi-value">0.7%</span><span class="kpi-sub">of gross, latest month</span></div></div>
+
+  <section>
+    <h2>Net sales index</h2>
+    <p class="sub">First full month = 100. The dashed segment is the current partial month projected at run-rate.</p>
+    <div class="chart"><canvas id="c1" role="img" aria-label="Line chart of net sales index over 9 months"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Conversion and repeat rate</h2>
+    <p class="sub">Both climbing: the store converts visitors better and brings more of them back.</p>
+    <div class="legend">
+      <span><span class="sw" style="background: var(--signal)"></span>conversion rate</span>
+      <span><span class="sw" style="background: var(--ember); height: 3px;"></span>repeat customer rate (dashed)</span>
+    </div>
+    <div class="chart"><canvas id="c2" role="img" aria-label="Conversion rate and repeat customer rate by month"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Product concentration</h2>
+    <p class="sub">Share of net sales held by the top five products, anonymized.</p>
+    <div class="chart tall"><canvas id="c3" role="img" aria-label="Share of net sales by anonymized product"></canvas></div>
+  </section>
+
+  <footer>SHOP_NAME / shopify-fin-model / data via ShopifyQL</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const L = ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9*"];
+const IDX = [100, 131, 144, 162, 301, 391, 506, 736, 629];
+const CONV = [1.1, 2.1, 2.3, 3.0, 2.2, 3.0, 2.3, 2.5, 3.2];
+const REP = [8.3, 15.5, 13.0, 17.5, 11.6, 17.2, 21.0, 20.4, 27.8];
+const SHARES = [10.1, 7.4, 6.8, 5.9, 5.5, 64.3];
+const SLAB = ["Product A", "Product B", "Product C", "Product D", "Product E", "All others"];
+const PARTIAL = true;
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.color = '#8a8f98';
+new Chart(document.getElementById('c1'), {
+  type: 'line',
+  data: { labels: L, datasets: [{ data: IDX, borderColor: '#2a78d6', backgroundColor: 'rgba(42,120,214,0.08)', fill: true, borderWidth: 2, pointRadius: 3,
+    segment: { borderDash: ctx => (PARTIAL && ctx.p1DataIndex === L.length - 1) ? [6, 4] : undefined } }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+    scales: { x: { ticks: { autoSkip: false }, grid: { display: false } }, y: { grid: { color: '#eeeee8' } } } }
+});
+new Chart(document.getElementById('c2'), {
+  type: 'line',
+  data: { labels: L, datasets: [
+    { data: CONV, borderColor: '#2a78d6', borderWidth: 2, pointRadius: 3 },
+    { data: REP, borderColor: '#eb6834', borderWidth: 2, borderDash: [6, 4], pointRadius: 3, pointStyle: 'rect' } ] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => c.parsed.y.toFixed(1) + '%' } } },
+    scales: { x: { ticks: { autoSkip: false }, grid: { display: false } },
+      y: { ticks: { callback: v => v + '%' }, grid: { color: '#eeeee8' } } } }
+});
+new Chart(document.getElementById('c3'), {
+  type: 'bar',
+  data: { labels: SLAB, datasets: [{ data: SHARES,
+    backgroundColor: SLAB.map(l => l === 'All others' ? '#c9c9c2' : '#2a78d6'), borderRadius: 3, maxBarThickness: 22 }] },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+    tooltip: { callbacks: { label: c => c.parsed.x.toFixed(1) + '% of net sales' } } },
+    scales: { x: { ticks: { callback: v => v + '%' }, grid: { color: '#eeeee8' } }, y: { grid: { display: false } } } }
+});
+</script>
+</body>
+</html>

@@ -22,6 +22,10 @@ FROM sessions SHOW sessions, sessions_with_cart_additions, sessions_that_reached
 3. `pip install openpyxl pandas`
 4. `python build_model.py`
 
-Output: `<SHOP_NAME>_Financial_Model.xlsx` with data sheets, an Assumptions sheet (fill the yellow cells with real COGS, courier, packaging, gateway costs), a formula-driven monthly model, and an insights sheet.
+Output: `<SHOP_NAME>_Financial_Model.xlsx` with data sheets, an Assumptions sheet (fill the yellow cells with real COGS, courier, packaging, gateway costs), a formula-driven monthly model, a Charts sheet (net sales, orders, sessions, conversion trends), and an auto-generated Insights sheet. Insights are computed from the CSVs on every run: growth vs run-rate for partial months, traffic vs conversion attribution, shipping recovery, repeat rate, product concentration, discount/return rates, and AOV.
 
 Real store CSVs and generated xlsx files are gitignored.
+
+## Public dashboard
+
+`python build_dashboard.py` generates `dashboard.html` from the CSVs in `raw/`: an anonymized, publish-safe performance page. Months are masked (M1..Mn), net sales are indexed to the first full month = 100, products are renamed A-E, and only rates and ratios appear. Safe to commit and serve via GitHub Pages (Settings -> Pages -> deploy from main branch, then visit /dashboard.html).
